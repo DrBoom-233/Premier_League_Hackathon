@@ -1,0 +1,288 @@
+{
+  "source_commit": "6c2d27bf0d64bdbfa0299989bcc64bcad876b058",
+  "audit_scope": "Observed CSV checks; no clinical validity or exact generator regeneration claimed.",
+  "daily": {
+    "rows": 7000,
+    "columns": 37,
+    "players": 25,
+    "date_min": "2025-08-01",
+    "date_max": "2026-05-07",
+    "rows_per_player": {
+      "280": 25
+    },
+    "null_counts": {
+      "load_28d": 150,
+      "acwr": 197,
+      "load_change_pct": 265,
+      "individual_load_zscore": 9
+    },
+    "day_types": {
+      "training": 4424,
+      "rest": 1632,
+      "match": 944
+    },
+    "label_counts": {
+      "0": 6860,
+      "1": 140
+    },
+    "excluded_rows": 573,
+    "eligible_rows": 6427,
+    "eligible_positive_rows": 137,
+    "tail_excluded_rows": 175,
+    "p001_position": "CB",
+    "nonfinite_counts": {
+      "load_change_pct": 20
+    },
+    "missing_calendar_days": 0,
+    "positive_row_percentage": 2.0,
+    "eligible_positive_row_percentage": 2.131632
+  },
+  "injuries": {
+    "rows": 30,
+    "columns": 9,
+    "mechanisms": {
+      "Non-contact": 20,
+      "Contact": 7,
+      "Unknown": 3
+    },
+    "types": {
+      "Knee": 6,
+      "Hamstring": 6,
+      "Back": 5,
+      "Calf": 4,
+      "Ankle": 4,
+      "Quad": 3,
+      "Groin": 2
+    },
+    "p001": [
+      {
+        "injury_id": "INJ_P001_0001",
+        "player_id": "P001",
+        "injury_start_date": "2025-12-26T00:00:00.000",
+        "injury_end_date": "2026-01-09T00:00:00.000",
+        "injury_type": "Knee",
+        "body_location": "Right Knee",
+        "injury_mechanism": "Non-contact",
+        "days_lost": 14,
+        "return_to_training_date": "2026-01-06T00:00:00.000"
+      }
+    ],
+    "checks": {
+      "duplicate_injury_id": 0,
+      "orphan_player": 0,
+      "days_lost_date_mismatch": 0,
+      "return_before_end": 30
+    }
+  },
+  "daily_checks": {
+    "duplicate_player_date": {
+      "count": 0,
+      "examples": []
+    },
+    "srpe_product_mismatch": {
+      "count": 0,
+      "examples": []
+    },
+    "sprint_exceeds_hsr": {
+      "count": 559,
+      "examples": [
+        {
+          "player_id": "P001",
+          "date": "2025-08-13T00:00:00.000",
+          "hsr_distance": 31,
+          "sprint_distance": 41
+        },
+        {
+          "player_id": "P001",
+          "date": "2025-08-14T00:00:00.000",
+          "hsr_distance": 0,
+          "sprint_distance": 98
+        },
+        {
+          "player_id": "P001",
+          "date": "2025-08-19T00:00:00.000",
+          "hsr_distance": 63,
+          "sprint_distance": 95
+        }
+      ]
+    },
+    "hsr_exceeds_total": {
+      "count": 5,
+      "examples": [
+        {
+          "player_id": "P004",
+          "date": "2026-01-10T00:00:00.000",
+          "hsr_distance": 349,
+          "total_distance": 0
+        },
+        {
+          "player_id": "P020",
+          "date": "2025-08-19T00:00:00.000",
+          "hsr_distance": 474,
+          "total_distance": 471
+        },
+        {
+          "player_id": "P020",
+          "date": "2025-10-07T00:00:00.000",
+          "hsr_distance": 219,
+          "total_distance": 175
+        }
+      ]
+    },
+    "nonfinite_load_change": {
+      "count": 20,
+      "examples": [
+        {
+          "player_id": "P001",
+          "date": "2026-01-09T00:00:00.000",
+          "load_7d": 436.8,
+          "load_change_pct": null
+        },
+        {
+          "player_id": "P002",
+          "date": "2026-03-13T00:00:00.000",
+          "load_7d": 455.0,
+          "load_change_pct": null
+        },
+        {
+          "player_id": "P004",
+          "date": "2026-01-04T00:00:00.000",
+          "load_7d": 387.6,
+          "load_change_pct": null
+        }
+      ]
+    },
+    "noncontact_next_7d_label_mismatch": {
+      "count": 0,
+      "examples": []
+    },
+    "exclusion_flag_mismatch": {
+      "count": 0,
+      "examples": []
+    },
+    "previous_injury_count_mismatch": {
+      "count": 0,
+      "examples": []
+    },
+    "days_since_injury_mismatch": {
+      "count": 0,
+      "examples": []
+    },
+    "match_count_differs_from_actual_participation": {
+      "count": 3528,
+      "examples": [
+        {
+          "player_id": "P001",
+          "date": "2025-08-02T00:00:00.000",
+          "day_type": "match",
+          "match_minutes": 0,
+          "matches_last_14d": 1.0
+        },
+        {
+          "player_id": "P001",
+          "date": "2025-08-03T00:00:00.000",
+          "day_type": "training",
+          "match_minutes": 0,
+          "matches_last_14d": 1.0
+        },
+        {
+          "player_id": "P001",
+          "date": "2025-08-04T00:00:00.000",
+          "day_type": "rest",
+          "match_minutes": 0,
+          "matches_last_14d": 1.0
+        }
+      ]
+    },
+    "load_7d_recalculation_mismatch": {
+      "count": 0,
+      "examples": []
+    },
+    "hsr_7d_recalculation_mismatch": {
+      "count": 0,
+      "examples": []
+    },
+    "sprint_7d_recalculation_mismatch": {
+      "count": 0,
+      "examples": []
+    },
+    "sleep_quality_outside_bounds": {
+      "count": 0,
+      "examples": []
+    },
+    "fatigue_score_outside_bounds": {
+      "count": 0,
+      "examples": []
+    },
+    "muscle_soreness_outside_bounds": {
+      "count": 0,
+      "examples": []
+    },
+    "stress_level_outside_bounds": {
+      "count": 0,
+      "examples": []
+    },
+    "session_rpe_outside_bounds": {
+      "count": 0,
+      "examples": []
+    },
+    "match_minutes_outside_bounds": {
+      "count": 0,
+      "examples": []
+    }
+  },
+  "p001_candidate_match_days_not_selected_by_future_labels": [
+    {
+      "player_id": "P001",
+      "date": "2026-01-11T00:00:00.000",
+      "match_minutes": 67,
+      "load_7d": 1026.4,
+      "load_28d": 4949.8,
+      "previous_injury_count": 1,
+      "days_since_last_injury": 16,
+      "fatigue_7d_mean": 1.71
+    },
+    {
+      "player_id": "P001",
+      "date": "2026-01-25T00:00:00.000",
+      "match_minutes": 79,
+      "load_7d": 2190.8,
+      "load_28d": 4254.7,
+      "previous_injury_count": 1,
+      "days_since_last_injury": 30,
+      "fatigue_7d_mean": 2.71
+    },
+    {
+      "player_id": "P001",
+      "date": "2026-02-01T00:00:00.000",
+      "match_minutes": 66,
+      "load_7d": 2242.7,
+      "load_28d": 6497.4,
+      "previous_injury_count": 1,
+      "days_since_last_injury": 37,
+      "fatigue_7d_mean": 3.57
+    }
+  ],
+  "missing_spec_fields": [
+    "days_since_last_match"
+  ],
+  "limitations": [
+    "Day-level records have no intraday availability time or aligned match event stream.",
+    "Raw CSV injury_next_7d and exclude_from_training are evaluation-only and must not enter agents.",
+    "return_to_training_date predates injury_end_date; define full training availability before using return counts.",
+    "Generator assumptions and output distributions do not validate an injury predictor."
+  ],
+  "method": {
+    "library": "pandas",
+    "source_files_immutable": true,
+    "ordering": [
+      "player_id",
+      "date"
+    ],
+    "label_window": "date < noncontact injury_start_date <= date + 7 days",
+    "prior_injury_window": "injury_start_date < date",
+    "rolling_windows": "Per player sorted by date; 7 rows, min_periods=1; contiguous daily coverage independently checked.",
+    "srpe_tolerance_au": 0.051,
+    "nonfinite_example_encoding": "Pandas to_json serializes Infinity as null in examples; nonfinite_load_change examples refer to raw +inf values, not raw missing values."
+  }
+}

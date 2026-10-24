@@ -1,0 +1,4 @@
+# Preserve the recorded checksums of immutable source snapshots on Windows checkouts.
+data/daily_records.csv -text
+data/injury_history.csv -text
+data/source/hackathon_injury2.0.py -text

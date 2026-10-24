@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PitchGuard — Synthetic animation review</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 40px 5vw; background: #111c22; color: #e9f3f5; font: 16px/1.55 system-ui, sans-serif; }
+  main { max-width: 1500px; margin: auto; }
+  h1 { line-height: 1.2; } p { color: #b4c9ce; }
+  .clips { display: grid; grid-template-columns: repeat(auto-fit,minmax(320px,1fr)); gap: 24px; }
+  article { padding: 20px; border: 1px solid #3b5159; border-radius: 12px; background: #1b2c33; }
+  video { width: 100%; border-radius: 6px; background: #080e12; }
+  a { color: #81e2d6; } h2 { font-size: 20px; margin: 0 0 12px; }
+</style>
+<main>
+  <h1>PitchGuard · Synthetic animation review</h1>
+  <p>Procedural Blender footage · 1280 × 720 · 24 fps · 10 seconds per core clip.<br>
+  Stylized activity and visibility examples. Human acceptance and model evaluation are pending.</p>
+  <section class="clips">
+    <article><h2>S001 · Steady movement</h2><video controls preload="metadata" src="runtime/S001/video.mp4"></video><p>Consistent jogging across the frame.</p><a href="runtime/S001/video.mp4">Open MP4</a></article>
+    <article><h2>S002 · Activity transition</h2><video controls preload="metadata" src="runtime/S002/video.mp4"></video><p>Jogging, gradual slowing, then stationary from 8 seconds.</p><a href="runtime/S002/video.mp4">Open MP4</a></article>
+    <article><h2>S003 · Limited visibility</h2><video controls preload="metadata" src="runtime/S003/video.mp4"></video><p>Same movement as S002. Foreground equipment obscures legs around 4–6 seconds.</p><a href="runtime/S003/video.mp4">Open MP4</a></article>
+    <article><h2>R001 · Independent reference</h2><video controls preload="metadata" src="runtime/R001/video.mp4"></video><p>Three seconds, same template, different initial gait phase.</p><a href="runtime/R001/video.mp4">Open MP4</a></article>
+  </section>
+  <p>Review the complete clips before annotating. This page is for people and must not be sent to the motion model.</p>
+</main>
+</html>

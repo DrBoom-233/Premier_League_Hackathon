@@ -1,0 +1,23 @@
+{
+  "fps": 24,
+  "duration_seconds": 3,
+  "resolution": [
+    1280,
+    720
+  ],
+  "seed": 42,
+  "path_origin_m": 1.2,
+  "match_start_ms": 4020000,
+  "camera": {
+    "ortho_scale": 10.5
+  },
+  "motion": {
+    "profile": "steady",
+    "speed_mps": 0.8,
+    "stride_m": 0.7,
+    "foot_lift_m": 0.2,
+    "phase_offset_m": 0.17
+  },
+  "reference_clip_id": null,
+  "scenario_id": "R001"
+}

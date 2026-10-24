@@ -1,0 +1,99 @@
+{
+  "model_version": "paired-demo-bernoulli-v1",
+  "scope": {
+    "scripted_cases": 4,
+    "history_profiles": 2,
+    "days_per_profile": 28,
+    "unique_current_videos": 2,
+    "shared_reference_videos": 1,
+    "new_paid_calls": 0,
+    "new_3d_frames": 0,
+    "purpose": "what_if_demo_not_training_or_calibration"
+  },
+  "episodes": [
+    {
+      "id": "DEMO01",
+      "world_id": "DEMO01",
+      "player_id": "P001",
+      "title": "Lower fatigue / steady replay",
+      "as_of": "2026-01-25T16:10:10+00:00",
+      "history": {
+        "cutoff": "2026-01-24",
+        "coverage_days": 28,
+        "fatigue_7d_mean": 2.0,
+        "srpe_load_7d": 1476,
+        "sleep_7d_mean": 7.81,
+        "profile_sha256": "aff49ec5bb048bf0af4ad44c345020690e4f1a2c109b55de7b99c0202e8b6cd0"
+      },
+      "clip_start_at": "2026-01-25T16:10:00+00:00",
+      "clip_end_at": "2026-01-25T16:10:10+00:00",
+      "current_clip_id": "S001",
+      "reference_clip_id": "R001",
+      "reference_recorded_at": "2026-01-25T16:09:00+00:00",
+      "reference_end_at": "2026-01-25T16:09:03+00:00"
+    },
+    {
+      "id": "DEMO02",
+      "world_id": "DEMO02",
+      "player_id": "P001",
+      "title": "Lower fatigue / slowing replay",
+      "as_of": "2026-01-25T16:10:10+00:00",
+      "history": {
+        "cutoff": "2026-01-24",
+        "coverage_days": 28,
+        "fatigue_7d_mean": 2.0,
+        "srpe_load_7d": 1476,
+        "sleep_7d_mean": 7.81,
+        "profile_sha256": "aff49ec5bb048bf0af4ad44c345020690e4f1a2c109b55de7b99c0202e8b6cd0"
+      },
+      "clip_start_at": "2026-01-25T16:10:00+00:00",
+      "clip_end_at": "2026-01-25T16:10:10+00:00",
+      "current_clip_id": "S002",
+      "reference_clip_id": "R001",
+      "reference_recorded_at": "2026-01-25T16:09:00+00:00",
+      "reference_end_at": "2026-01-25T16:09:03+00:00"
+    },
+    {
+      "id": "DEMO03",
+      "world_id": "DEMO03",
+      "player_id": "P001",
+      "title": "Higher fatigue / steady replay",
+      "as_of": "2026-01-25T16:10:10+00:00",
+      "history": {
+        "cutoff": "2026-01-24",
+        "coverage_days": 28,
+        "fatigue_7d_mean": 4.0,
+        "srpe_load_7d": 4636,
+        "sleep_7d_mean": 6.34,
+        "profile_sha256": "8ba16bcf0f97a5521ca93568e97801aede22c166e3ee76df6349a16c2302ed68"
+      },
+      "clip_start_at": "2026-01-25T16:10:00+00:00",
+      "clip_end_at": "2026-01-25T16:10:10+00:00",
+      "current_clip_id": "S001",
+      "reference_clip_id": "R001",
+      "reference_recorded_at": "2026-01-25T16:09:00+00:00",
+      "reference_end_at": "2026-01-25T16:09:03+00:00"
+    },
+    {
+      "id": "DEMO04",
+      "world_id": "DEMO04",
+      "player_id": "P001",
+      "title": "Higher fatigue / slowing replay",
+      "as_of": "2026-01-25T16:10:10+00:00",
+      "history": {
+        "cutoff": "2026-01-24",
+        "coverage_days": 28,
+        "fatigue_7d_mean": 4.0,
+        "srpe_load_7d": 4636,
+        "sleep_7d_mean": 6.34,
+        "profile_sha256": "8ba16bcf0f97a5521ca93568e97801aede22c166e3ee76df6349a16c2302ed68"
+      },
+      "clip_start_at": "2026-01-25T16:10:00+00:00",
+      "clip_end_at": "2026-01-25T16:10:10+00:00",
+      "current_clip_id": "S002",
+      "reference_clip_id": "R001",
+      "reference_recorded_at": "2026-01-25T16:09:00+00:00",
+      "reference_end_at": "2026-01-25T16:09:03+00:00"
+    }
+  ]
+}

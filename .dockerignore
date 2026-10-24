@@ -1,0 +1,17 @@
+.git
+.env
+.env.*
+.venv
+.state
+.tools
+.gh-config
+**/node_modules
+**/__pycache__
+src/frontend/dist
+data/source
+data/animation/configs
+data/animation/evaluation
+data/animation/scenes
+data/animation/previews
+tests
+data/demo/offline

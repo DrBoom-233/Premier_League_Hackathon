@@ -1,46 +1,46 @@
-# Project brief
+# PitchGuard AI — project brief
 
-Update this document together. Replace prompts with agreed facts; mark unresolved items as open questions.
+Current implementation: [status](IMPLEMENTATION_STATUS.md), [startup and operation](RUNBOOK.md).
 
 ## One-line idea
 
-[TBD]
+Evidence-grounded intelligence from synthetic football replays, with different analyst and fan explanations.
 
 ## Problem and target users
 
-- Problem:
-- Primary user:
-- What they need during or after a match:
+- Problem: keep visible evidence, historical context and uncertainty together without inventing a health conclusion.
+- Primary user: a match analyst reviewing a short player-focused replay; a fan is the secondary audience.
+- Need: inspect which frame or dated record supports an observation, and know what remains hidden or unverified.
 
 ## Experience
 
-- User flow:
-- Example match moment:
-- What makes the explanation useful:
-- How the experience changes for another fan or analyst:
+- Select replay → compare reference → analyze → inspect citations → acknowledge viewing.
+- Example: a ten-second synthetic window at 68:00 for P001, with a separate 67:00 reference.
+- Each observation includes evidence IDs and limitations. A recheck is bounded and is not independent verification.
+- Analyst receives internal synthetic history; fan receives accepted visual facts only.
 
 ## Event data
 
-- Synthetic data source or generator:
-- Event schema and sample:
-- Real-time assumptions / latency target:
+- Frozen CSV provenance: `data/source_manifest.json`; pre-rendered Blender media has neutral input manifests.
+- Neutral replay start/end events and timestamped frame IDs; no pre-scripted AI findings.
+- Sampled-frame replay analysis, not full-match live tracking. Actual call latencies are recorded; no latency guarantee.
 
 ## MVP scope
 
-- Must demonstrate:
-- Explicitly out of scope:
+- Real image calls, cutoff-safe history, investigator/recheck trace, source seeking and audience filtering.
+- No training, pose service, GPU host, diagnosis, calibrated injury probabilities or full-match real-time analysis.
 
 ## Technical approach
 
-- Microsoft/Azure technologies and why:
-- Other components:
-- Architecture diagram: [TBD]
+- Azure GPT-4.1 mini and Microsoft Agent Framework custom executors; one model deployment shared by roles.
+- FastAPI + React, local SQLite/cache, optional Blob-backed state and finite Container Apps Job.
+- Architecture diagram: [architecture](ARCHITECTURE.md).
 
 ## Demo plan
 
-- Working URL or run instructions:
-- Two-minute video story:
-- Submission owner:
+- Local: [README](../README.md). External test URL remains pending.
+- Video: show replay, real analysis, cited evidence, audience change and honest visibility limits; final recording pending.
+- Submission owner: TBD.
 
 ## Team
 
@@ -50,6 +50,6 @@ Update this document together. Replace prompts with agreed facts; mark unresolve
 
 ## Open questions
 
-- [ ] Agree on the user and core moment.
-- [ ] Select a feasible MVP and category target.
-- [ ] Confirm event schema and data license.
+- [ ] Complete human visual/claim review and independent held-out evaluation.
+- [ ] Verify Azure deployment, cold starts, managed identities and cost limits.
+- [ ] Confirm team membership, registration, submission owner, public repo and video.

@@ -1,0 +1,13 @@
+{
+  "model_version": "paired-demo-bernoulli-v1",
+  "seeds": "paired-demo-history/future + ID",
+  "event_definition": "First new non-contact time-loss event in (as_of, as_of+168h]",
+  "population": "Four stipulated what-if worlds; initially uninjured; no competing causes in this toy world",
+  "event_law": {
+    "base_daily_rate": 0.004,
+    "fatigue_rate": 0.008,
+    "slowing_rate": 0.016
+  },
+  "media": "Reuse S001/S002/R001 templates. Shared avatar, not four independent personal baselines.",
+  "qualification": "No training, calibration, independent accuracy or medical validity claimed."
+}

@@ -1,0 +1,30 @@
+[
+  {
+    "episode_id": "DEMO01",
+    "followup_end": "2026-02-01T16:10:10+00:00",
+    "label_7d": 0,
+    "events": [],
+    "generator_probability": 0.041251514802969735
+  },
+  {
+    "episode_id": "DEMO02",
+    "followup_end": "2026-02-01T16:10:10+00:00",
+    "label_7d": 0,
+    "events": [],
+    "generator_probability": 0.1442005884751072
+  },
+  {
+    "episode_id": "DEMO03",
+    "followup_end": "2026-02-01T16:10:10+00:00",
+    "label_7d": 0,
+    "events": [],
+    "generator_probability": 0.06793465209301008
+  },
+  {
+    "episode_id": "DEMO04",
+    "followup_end": "2026-02-01T16:10:10+00:00",
+    "label_7d": 0,
+    "events": [],
+    "generator_probability": 0.16840341319451757
+  }
+]

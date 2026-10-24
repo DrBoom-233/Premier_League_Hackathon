@@ -1,0 +1,10 @@
+{
+  "schema_version": "1",
+  "status": "pending_human_review",
+  "note": "Production intentions are not annotations. Watch each complete video before adding observed intervals. Keep this file outside runtime model inputs.",
+  "clips": [
+    {"scenario_id": "S001", "reviewer": null, "reviewed_at": null, "observations": []},
+    {"scenario_id": "S002", "reviewer": null, "reviewed_at": null, "observations": []},
+    {"scenario_id": "S003", "reviewer": null, "reviewed_at": null, "observations": []}
+  ]
+}

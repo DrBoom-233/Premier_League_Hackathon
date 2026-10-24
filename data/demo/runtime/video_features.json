@@ -1,0 +1,161 @@
+{
+  "extractor_version": "blue-avatar-centroid-v1",
+  "clips": {
+    "S001": {
+      "status": "measured",
+      "extractor_version": "blue-avatar-centroid-v1",
+      "video_sha256": "df4bff20917f03b5d05960e1edcd75e73a746db9a967ce41bfcc8c1ff8c56ff2",
+      "late_speed_px_s": 48.382,
+      "samples": [
+        {
+          "frame": 1,
+          "time_ms": 0.0,
+          "centroid_x": 78.848,
+          "pixel_count": 558,
+          "decoded_image_sha256": "9df9f9e29cf73827640cb185415afd7bb8b7a9df6cb98adb1216776467fac60c"
+        },
+        {
+          "frame": 25,
+          "time_ms": 1000.0,
+          "centroid_x": 126.588,
+          "pixel_count": 536,
+          "decoded_image_sha256": "f846bc4cd9851c3d90d7d4869bbd9c52999450ec6a913a16a9bcb8ae1ee8a005"
+        },
+        {
+          "frame": 49,
+          "time_ms": 2000.0,
+          "centroid_x": 174.979,
+          "pixel_count": 629,
+          "decoded_image_sha256": "3a341c7075739333e3b0b527b81d3df44e074e3e2cd417278e4ee51cbbdda455"
+        },
+        {
+          "frame": 169,
+          "time_ms": 7000.0,
+          "centroid_x": 420.162,
+          "pixel_count": 579,
+          "decoded_image_sha256": "aa1b16bdff55506d7f3b0cf7fb16b13a4af0dff1026df6bd40c951e97803e47b"
+        },
+        {
+          "frame": 193,
+          "time_ms": 8000.0,
+          "centroid_x": 468.227,
+          "pixel_count": 581,
+          "decoded_image_sha256": "3444d465172a9d670335a45edf7f9160ee2a7227370bd78c56b100a4e2868c15"
+        },
+        {
+          "frame": 217,
+          "time_ms": 9000.0,
+          "centroid_x": 516.376,
+          "pixel_count": 716,
+          "decoded_image_sha256": "f8fca3e32f7e8939d922a1c19f67c0727f8984a40d6046c075c34a2359ebbcc0"
+        },
+        {
+          "frame": 240,
+          "time_ms": 9958.333,
+          "centroid_x": 562.975,
+          "pixel_count": 755,
+          "decoded_image_sha256": "2a40694bba890cc719d4d6813e88c7c319d6d94546f0ae31245cb79104ddc39d"
+        }
+      ],
+      "late_speed_ratio": 0.9918,
+      "motion_state": 0
+    },
+    "S002": {
+      "status": "measured",
+      "extractor_version": "blue-avatar-centroid-v1",
+      "video_sha256": "1ae882de2725ebb94ab4c0b3b71301e0d42051e20f100642ec3dcfa609fc8f1d",
+      "late_speed_px_s": 0.0454,
+      "samples": [
+        {
+          "frame": 1,
+          "time_ms": 0.0,
+          "centroid_x": 78.848,
+          "pixel_count": 558,
+          "decoded_image_sha256": "9df9f9e29cf73827640cb185415afd7bb8b7a9df6cb98adb1216776467fac60c"
+        },
+        {
+          "frame": 25,
+          "time_ms": 1000.0,
+          "centroid_x": 126.588,
+          "pixel_count": 536,
+          "decoded_image_sha256": "f846bc4cd9851c3d90d7d4869bbd9c52999450ec6a913a16a9bcb8ae1ee8a005"
+        },
+        {
+          "frame": 49,
+          "time_ms": 2000.0,
+          "centroid_x": 174.979,
+          "pixel_count": 629,
+          "decoded_image_sha256": "3a341c7075739333e3b0b527b81d3df44e074e3e2cd417278e4ee51cbbdda455"
+        },
+        {
+          "frame": 169,
+          "time_ms": 7000.0,
+          "centroid_x": 382.646,
+          "pixel_count": 608,
+          "decoded_image_sha256": "f798faeb43f1e48fed814d2321ce4608c81f9797d28c8ce119410ca333ebfe6c"
+        },
+        {
+          "frame": 193,
+          "time_ms": 8000.0,
+          "centroid_x": 388.541,
+          "pixel_count": 610,
+          "decoded_image_sha256": "5c16035e1dff8e3a516321ce3df386fe40431eca083b27500292717ed31f925c"
+        },
+        {
+          "frame": 217,
+          "time_ms": 9000.0,
+          "centroid_x": 388.805,
+          "pixel_count": 640,
+          "decoded_image_sha256": "c9b1b7d7f9ac993d62a5d1918bc0db9a3cd9493a0d724cc60274eb807015f028"
+        },
+        {
+          "frame": 240,
+          "time_ms": 9958.333,
+          "centroid_x": 388.63,
+          "pixel_count": 614,
+          "decoded_image_sha256": "981114770e77ecb065191e43899d550444688c18bc32c49851d069059e1c50aa"
+        }
+      ],
+      "late_speed_ratio": 0.0009,
+      "motion_state": 1
+    },
+    "R001": {
+      "status": "measured",
+      "extractor_version": "blue-avatar-centroid-v1",
+      "video_sha256": "92ea64e9afbad6103706a37041cc59afd154d8f7f465fbac5743d1525aab20ca",
+      "late_speed_px_s": 48.7843,
+      "samples": [
+        {
+          "frame": 1,
+          "time_ms": 0.0,
+          "centroid_x": 248.399,
+          "pixel_count": 602,
+          "decoded_image_sha256": "4b054ba169f454469b7e41b5584919d4597407d52b1148d3298e46c4f58ecbca"
+        },
+        {
+          "frame": 25,
+          "time_ms": 1000.0,
+          "centroid_x": 296.622,
+          "pixel_count": 672,
+          "decoded_image_sha256": "47d6525f74f8055c8fbd3a29b181b4dbad391be90f88c69db689999a41ee829e"
+        },
+        {
+          "frame": 49,
+          "time_ms": 2000.0,
+          "centroid_x": 344.986,
+          "pixel_count": 692,
+          "decoded_image_sha256": "91644b18c337ff0c8d68ef0ead8c5122e56c7b5443a8266555617957902efeb4"
+        },
+        {
+          "frame": 72,
+          "time_ms": 2958.333,
+          "centroid_x": 392.158,
+          "pixel_count": 721,
+          "decoded_image_sha256": "956f6a369651d79960995018f849c9836048c65d1bc9194a1c1e3b7fb19ba8bf"
+        }
+      ],
+      "late_speed_ratio": 1.0,
+      "motion_state": 0
+    }
+  }
+}

@@ -1,0 +1,4 @@
+-r requirements.txt
+azure-identity>=1.25,<2
+azure-storage-blob>=12.27,<13
+azure-monitor-opentelemetry>=1.8,<2
