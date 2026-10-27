@@ -74,3 +74,51 @@ and three reference images and explicitly recorded `not_run`.
   they do not demonstrate recognition, grounding, abstention, latency or cost.
 - Generated media remain local and ignored by Git; no shared upload, commit,
   push, deployment or external publication was performed.
+
+## 2026-10-26: asymmetric gait and matched control
+
+Added S004 and S006 following the user's request for a visible fictional limping
+gait. Both clips run for 10 seconds at 1280x720/24 fps, with identical horizontal
+root positions, speed, camera, lighting and character. S004/S006 form evaluation
+group G004; S005 remains reserved for a camera experiment.
+
+- 0–3 s: identical normal jogging in both clips.
+- 3–5 s: speed smoothly decreases from 0.8 to 0.4 m/s. Asymmetric motion is
+  introduced over planned steps in S004; S006 remains symmetric.
+- After 5 s: both continue walking instead of stopping. S004 settles into shorter
+  near-side forward steps, a shorter near-side support phase, longer opposite-side
+  support, lower near-side foot lift, and a small pelvis dip/torso roll. These are
+  authored visual features, not an anatomical diagnosis or validated injury model.
+
+`gait_track` schedules world-space touchdown/liftoff anchors and eases each swing
+between them. Changing step parameters does not move a planted foot. Fully
+established steps have support fractions 0.40/0.75 and alternating forward step
+lengths approximately 0.185/0.515 m at the common 0.70 m cycle distance. Both feet
+retain ground support across the cycle; leg IK targets remain reachable.
+
+Inspected a 6–9 s, 640x360 preview before the final renders. Added `-PreviewStart`
+to select that actual motion window; preview frames use a local zero-based clock,
+with the source start offset and shifted match clock recorded in their manifest.
+Inspected representative final frames and generated an enlarged, cropped,
+side-by-side 5–10 s GIF for human review only. Runtime images keep the original
+fixed full-frame camera and contain no gait labels or risk overlays.
+
+Final measured generation:
+
+| Clip | PNG frames | Mean render/frame | Total |
+| --- | --- | --- | --- |
+| S004 | 240 | 0.173 s | 44.3 s |
+| S006 | 240 | 0.175 s | 44.8 s |
+
+Seven unit checks passed, including equal paths/speeds, identical first three
+seconds, world-planted stance feet, continuous reachability, unequal late step
+lengths and support durations, and neutral runtime manifests. Output verification
+passed for all six delivered clips. Separately decoded the first/middle/final
+MP4 frames for both new clips; all six decoded successfully. Generation reports
+record the exact script hashes and configs used for this pair.
+
+Original S001–S003/R001 assets were preserved; their older generation reports
+retain the source hashes from their original render. No new VLM calls were made
+in this extension. Human review/annotations for S004/S006 remain pending, and
+the live demo's history/scenario mappings were not changed. Local media are still
+ignored by Git; use `preview.html` to play the full clips.

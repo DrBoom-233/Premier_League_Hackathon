@@ -7,7 +7,7 @@
   "history_cutoff": "2026-01-24",
   "reference_clip_id": "R001",
   "match_start_ms": 4080000,
-  "scenarios": ["S001", "S002", "S003"],
+  "scenarios": ["S006", "S004", "S001", "S002", "S003"],
   "data_mode": "synthetic",
   "mapping_note": "Animation and CSV history are independent synthetic assets linked for this demo, not measured actions from the daily records."
 }

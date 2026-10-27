@@ -5,7 +5,7 @@ import math
 from pathlib import Path
 import unittest
 
-from motion import leg_pose, manifest, sample_frames, solve_leg, speed_at, trajectory, validate
+from motion import CLIP_IDS, gait_track, leg_pose, manifest, sample_frames, solve_leg, speed_at, trajectory, validate
 from run_vlm import safe_file, validate_output
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -17,7 +17,7 @@ def config(clip):
 
 class AnimationTests(unittest.TestCase):
     def test_scene_contract_and_time_mapping(self):
-        for clip in ("S001", "S002", "S003", "R001"):
+        for clip in CLIP_IDS:
             c = config(clip)
             validate(c)
             m = manifest(c)
@@ -73,6 +73,45 @@ class AnimationTests(unittest.TestCase):
             validate(c)
         with self.assertRaises(ValueError):
             sample_frames(manifest(config("S001"))["frames"], 10, 15000, 16000)
+
+    def test_limp_pair_path_contact_and_reach(self):
+        changed, control = config("S004"), config("S006")
+        self.assertEqual(trajectory(changed), trajectory(control))
+        self.assertEqual(changed["camera"], control["camera"])
+        self.assertEqual(changed["resolution"], control["resolution"])
+        for c in (changed, control):
+            positions, track = trajectory(c), gait_track(c)
+            previous_plants = [None, None]
+            for x, row in zip(positions, track):
+                self.assertTrue(any(foot[1] == 0.095 for foot in row["feet"]), "Unsupported flight phase")
+                for side, (dx, z, phase) in enumerate(row["feet"]):
+                    solve_leg(dx, z, row["hip_z"])
+                    plant = x + dx
+                    if phase <= 0.5:
+                        if previous_plants[side] is not None:
+                            self.assertAlmostEqual(plant, previous_plants[side], places=9)
+                        previous_plants[side] = plant
+                    else:
+                        previous_plants[side] = None
+            self.assertTrue(all(speed_at(t, c["motion"]) == 0.4 for t in (5, 7, 9.9)))
+        a, b = gait_track(changed), gait_track(control)
+        self.assertEqual(a[:72], b[:72])
+        # Sustained asymmetry: short/long successive step lengths, unequal stance durations.
+        landed = []
+        stance = [0, 0]
+        for i in range(145, 240):
+            for side in (0, 1):
+                dx, z, phase = a[i]["feet"][side]
+                stance[side] += z == 0.095
+                if phase < a[i - 1]["feet"][side][2]:
+                    landed.append((side, trajectory(changed)[i] + dx))
+        steps = [(side, x - before[1]) for before, (side, x) in zip(landed, landed[1:])]
+        short = [length for side, length in steps if side == 0]
+        long = [length for side, length in steps if side == 1]
+        self.assertTrue(short and long)
+        self.assertLess(max(short), min(long) * 0.6)
+        self.assertLess(stance[0], stance[1] * 0.75)
+        self.assertNotIn("asymmetry", json.dumps(manifest(changed)))
 
     def test_vlm_rejects_unseen_citations_and_unbounded_recheck(self):
         value = {"observations": ["The player is visible."], "evidence_frame_ids": ["S001_F0001"],

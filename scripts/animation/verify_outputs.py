@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import struct
 
-from motion import manifest, sample_frames
+from motion import CLIP_IDS, manifest, sample_frames
 
 
 def boxes(data, start=0, end=None):
@@ -53,7 +53,7 @@ def video_info(path):
 
 def verify(root):
     results = []
-    for clip in ("S001", "S002", "S003", "R001"):
+    for clip in CLIP_IDS:
         config = json.loads((root / "configs" / f"{clip}.json").read_text())
         runtime = root / "runtime" / clip
         value = json.loads((runtime / "input_manifest.json").read_text())
@@ -79,7 +79,7 @@ def verify(root):
                         "initial_sample_count": len(sample_frames(value["frames"]))})
     return {"status": "passed", "clips": results,
             "visual_review": "Agent inspected representative frames; human acceptance pending",
-            "vlm_status": "not_run"}
+            "model_inference_checked": False}
 
 
 if __name__ == "__main__":

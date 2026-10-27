@@ -1,65 +1,62 @@
-param(
-    [string]$SubscriptionId,
-    [string]$ResourceGroup = 'rg-pitchguard-v2',
-    [ValidateSet('francecentral','canadacentral','denmarkeast','belgiumcentral','norwayeast')]
-    [string]$Location = 'francecentral',
-    [switch]$Apply
-)
+param([string]$SubscriptionId, [switch]$Apply)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
+$releaseRoot = Split-Path $projectRoot -Parent
 Set-Location $projectRoot
 if (!$Apply) {
-    Write-Output 'Deployment plan: ACR Basic, Blob LRS, Log Analytics (0.1 GB/day cap), Application Insights, Consumption environment, web app (0-1 replicas), manual CPU job (no automatic retries).'
-    Write-Output 'Uses existing Foundry model; does not create another Foundry account or delete any resource.'
-    Write-Output 'Requires Azure CLI login, provider registration, resource deployment rights and RBAC assignment rights. See docs/RUNBOOK.md before -Apply.'
+    Write-Output 'Isolated update: local Docker build/push, existing Basic registry, one small HTTPS web replica, finite analysis Job, private Blob state and persistent 10-use judge codes.'
+    Write-Output 'Target: Azure for Students / rg-pitchguard-demo-20261026. Existing Foundry and local fallback are excluded. No ACR Tasks or resource deletions.'
     exit 0
 }
-if (!$SubscriptionId) { throw 'Pass -SubscriptionId explicitly to select the authorized subscription.' }
-if (!(Get-Command az -ErrorAction SilentlyContinue)) { throw 'Azure CLI is required; install it and run az login.' }
+if (!$SubscriptionId) { throw 'Pass the intended subscription ID explicitly.' }
+$resourceGroup = 'rg-pitchguard-demo-20261026'
+$azureCli = Join-Path $releaseRoot 'tools/azure-cli/bin/az.cmd'
+$env:AZURE_CONFIG_DIR = Join-Path $releaseRoot 'azure-config'
+$env:AZURE_CORE_COLLECT_TELEMETRY = 'false'
+$pythonPath = Join-Path $releaseRoot 'local-fallback/.venv/Scripts/python.exe'
+$originalRoot = Split-Path (Split-Path (Split-Path $releaseRoot -Parent) -Parent) -Parent
+$bicepPath = Join-Path $originalRoot '.tools/bicep.exe'
 function Invoke-Azure {
     param([string[]]$Arguments)
-    $result = & az @Arguments
-    if ($LASTEXITCODE -ne 0) { throw 'Azure command failed; stopped without automatic deployment retries.' }
+    $result = & $azureCli @Arguments
+    if ($LASTEXITCODE -ne 0) { throw 'Azure command failed; no automatic deployment retry.' }
     return $result
 }
-$settings = @{}
-foreach ($line in (Get-Content -LiteralPath '.env')) {
-    if ($line -match '^\s*([A-Z_]+)\s*=(.*)$') { $settings[$Matches[1]] = $Matches[2].Trim().Trim('"').Trim("'") }
-}
-if (!$settings['AZURE_OPENAI_API_KEY']) { throw 'Fill AZURE_OPENAI_API_KEY in .env first.' }
-if (!(Test-Path -LiteralPath 'data/animation/runtime/S003/video.mp4')) { throw 'Rebuild runtime animation assets first.' }
-Invoke-Azure -Arguments @('account','set','--subscription',$SubscriptionId) | Out-Null
-Invoke-Azure -Arguments @('group','show','--name',$ResourceGroup,'--output','none') | Out-Null
-$foundationText = Invoke-Azure -Arguments @('deployment','group','create','--name','pitchguard-foundation','--resource-group',$ResourceGroup,
-    '--template-file','infra/foundation.bicep','--parameters',"location=$Location",'--query','properties.outputs','--output','json')
-$foundation = ($foundationText -join "`n") | ConvertFrom-Json
+$isolation = Invoke-Azure -Arguments @('group','show','--subscription',$SubscriptionId,'--name',$resourceGroup,'--query','tags.isolation','-o','tsv')
+if ($isolation -ne 'azure-demo-local-preserved') { throw 'Target group is not marked as this isolated demo.' }
+$foundation = Get-Content (Join-Path $releaseRoot 'foundation.outputs.json') -Raw | ConvertFrom-Json
 $tag = 'demo-' + (Get-Date -Format 'yyyyMMddHHmmss')
 $image = $foundation.registryServer.value + '/pitchguard:' + $tag
-Invoke-Azure -Arguments @('acr','build','--registry',$foundation.registryName.value,'--image',"pitchguard:$tag",'.','--no-logs') | Out-Null
-$randomBytes = New-Object byte[] 32
-$generator = [System.Security.Cryptography.RandomNumberGenerator]::Create()
-$generator.GetBytes($randomBytes)
-$generator.Dispose()
-$analystToken = [Convert]::ToBase64String($randomBytes)
-$params = @{}
-foreach ($name in @('registryServer','environmentId','storageUrl','apiIdentityId','apiClientId','apiPrincipalId',
-    'workerIdentityId','workerClientId','insightsConnection')) { $params[$name] = @{value=$foundation.$name.value} }
-$params['location'] = @{value=$Location}
-$params['image'] = @{value=$image}
-$params['modelEndpoint'] = @{value=$settings['AZURE_OPENAI_ENDPOINT']}
-$params['modelDeployment'] = @{value=$settings['AZURE_OPENAI_DEPLOYMENT']}
-$params['modelKey'] = @{value=$settings['AZURE_OPENAI_API_KEY']}
-$params['analystToken'] = @{value=$analystToken}
-New-Item -ItemType Directory -Force -Path '.state' | Out-Null
-$parameterPath = Join-Path $projectRoot '.state/deploy.parameters.json'
-$parameterDocument = @{'$schema'='https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#';contentVersion='1.0.0.0';parameters=$params}
-$parameterDocument | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $parameterPath -Encoding utf8
+& docker build --tag $image .
+if ($LASTEXITCODE -ne 0) { throw 'Image build failed; hosted revision unchanged.' }
+$dockerConfig = Join-Path $releaseRoot 'docker-config'
+New-Item -ItemType Directory -Force -Path $dockerConfig | Out-Null
+$registryToken = Invoke-Azure -Arguments @('acr','login','--subscription',$SubscriptionId,'--name',$foundation.registryName.value,'--expose-token','--query','accessToken','-o','tsv')
+$registryToken | docker --config $dockerConfig login $foundation.registryServer.value --username 00000000-0000-0000-0000-000000000000 --password-stdin
+if ($LASTEXITCODE -ne 0) { throw 'Registry login failed.' }
+& docker --config $dockerConfig push $image
+if ($LASTEXITCODE -ne 0) { throw 'Image push failed; hosted revision unchanged.' }
+& $pythonPath scripts/prepare_runtime_parameters.py $tag
+if ($LASTEXITCODE -ne 0) { throw 'Private parameter preparation failed.' }
+$template = Join-Path $releaseRoot 'runtime.validated.json'
+& $bicepPath build infra/runtime.bicep --outfile $template
+if ($LASTEXITCODE -ne 0) { throw 'Runtime template compilation failed.' }
+$parameterPath = Join-Path $projectRoot '.state/runtime.parameters.json'
 try {
-    $result = Invoke-Azure -Arguments @('deployment','group','create','--name','pitchguard-runtime','--resource-group',$ResourceGroup,
-        '--template-file','infra/runtime.bicep','--parameters',"@$parameterPath",'--query','properties.outputs','--output','json')
-    Write-Output ($result -join "`n")
-    $analystToken | Set-Content -LiteralPath '.state/analyst-token.txt' -Encoding utf8
-    Write-Output 'Analyst access token saved locally to .state/analyst-token.txt (Git-ignored); not printed.'
+    Invoke-Azure -Arguments @('deployment','group','what-if','--subscription',$SubscriptionId,'--resource-group',$resourceGroup,
+        '--template-file',$template,'--parameters',"@$parameterPath",'--no-pretty-print','-o','json') |
+        Set-Content (Join-Path $releaseRoot 'runtime.what-if.json') -Encoding utf8
+    $preview = Get-Content (Join-Path $releaseRoot 'runtime.what-if.json') -Raw | ConvertFrom-Json
+    $scope = "/subscriptions/$SubscriptionId/resourceGroups/$resourceGroup/"
+    foreach ($change in $preview.changes) {
+        if ($change.changeType -eq 'Delete' -or !$change.resourceId.StartsWith($scope,[System.StringComparison]::OrdinalIgnoreCase)) {
+            throw 'Unexpected deletion or scope in deployment preview.'
+        }
+    }
+    Invoke-Azure -Arguments @('deployment','group','create','--subscription',$SubscriptionId,'--resource-group',$resourceGroup,
+        '--name','pitchguard-runtime','--template-file',$template,'--parameters',"@$parameterPath",'--query','properties.outputs','-o','json') |
+        Set-Content (Join-Path $releaseRoot 'runtime.outputs.json') -Encoding utf8
+    Write-Output 'Isolated update completed. URL: ../runtime.outputs.json. Existing judge codes were retained.'
 } finally {
-    Remove-Item -LiteralPath $parameterPath -Force
+    if (Test-Path -LiteralPath $parameterPath) { Remove-Item -LiteralPath $parameterPath -Force }
 }

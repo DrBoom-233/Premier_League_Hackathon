@@ -1,10 +1,10 @@
 {
-  "model_version": "paired-demo-bernoulli-v1",
+  "model_version": "paired-demo-bernoulli-v2",
   "scope": {
-    "scripted_cases": 4,
+    "scripted_cases": 6,
     "history_profiles": 2,
     "days_per_profile": 28,
-    "unique_current_videos": 2,
+    "unique_current_videos": 4,
     "shared_reference_videos": 1,
     "new_paid_calls": 0,
     "new_3d_frames": 0,
@@ -91,6 +91,48 @@
       "clip_start_at": "2026-01-25T16:10:00+00:00",
       "clip_end_at": "2026-01-25T16:10:10+00:00",
       "current_clip_id": "S002",
+      "reference_clip_id": "R001",
+      "reference_recorded_at": "2026-01-25T16:09:00+00:00",
+      "reference_end_at": "2026-01-25T16:09:03+00:00"
+    },
+    {
+      "id": "DEMO05",
+      "world_id": "DEMO05",
+      "player_id": "P001",
+      "title": "S006 / Symmetric gait",
+      "as_of": "2026-01-25T16:10:10+00:00",
+      "history": {
+        "cutoff": "2026-01-24",
+        "coverage_days": 28,
+        "fatigue_7d_mean": 2.0,
+        "srpe_load_7d": 1476,
+        "sleep_7d_mean": 7.81,
+        "profile_sha256": "aff49ec5bb048bf0af4ad44c345020690e4f1a2c109b55de7b99c0202e8b6cd0"
+      },
+      "clip_start_at": "2026-01-25T16:10:00+00:00",
+      "clip_end_at": "2026-01-25T16:10:10+00:00",
+      "current_clip_id": "S006",
+      "reference_clip_id": "R001",
+      "reference_recorded_at": "2026-01-25T16:09:00+00:00",
+      "reference_end_at": "2026-01-25T16:09:03+00:00"
+    },
+    {
+      "id": "DEMO06",
+      "world_id": "DEMO06",
+      "player_id": "P001",
+      "title": "S004 / Asymmetric gait",
+      "as_of": "2026-01-25T16:10:10+00:00",
+      "history": {
+        "cutoff": "2026-01-24",
+        "coverage_days": 28,
+        "fatigue_7d_mean": 2.0,
+        "srpe_load_7d": 1476,
+        "sleep_7d_mean": 7.81,
+        "profile_sha256": "aff49ec5bb048bf0af4ad44c345020690e4f1a2c109b55de7b99c0202e8b6cd0"
+      },
+      "clip_start_at": "2026-01-25T16:10:00+00:00",
+      "clip_end_at": "2026-01-25T16:10:10+00:00",
+      "current_clip_id": "S004",
       "reference_clip_id": "R001",
       "reference_recorded_at": "2026-01-25T16:09:00+00:00",
       "reference_end_at": "2026-01-25T16:09:03+00:00"

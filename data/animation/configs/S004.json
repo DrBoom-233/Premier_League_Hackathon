@@ -1,0 +1,34 @@
+{
+  "fps": 24,
+  "duration_seconds": 10,
+  "resolution": [
+    1280,
+    720
+  ],
+  "seed": 42,
+  "path_origin_m": 4,
+  "match_start_ms": 4080000,
+  "camera": {
+    "ortho_scale": 10.5
+  },
+  "motion": {
+    "profile": "slow_walk",
+    "speed_mps": 0.8,
+    "stride_m": 0.7,
+    "foot_lift_m": 0.2,
+    "transition_seconds": [
+      3,
+      5
+    ],
+    "walk_speed_mps": 0.4,
+    "asymmetry": {
+      "transition_seconds": [
+        3,
+        5
+      ],
+      "strength": 1
+    }
+  },
+  "reference_clip_id": "R001",
+  "scenario_id": "S004"
+}

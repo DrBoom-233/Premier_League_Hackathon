@@ -13,11 +13,22 @@ from .schemas import AnalysisRequest
 from .store import Store, utc
 from .tools import clip_context, mapping, revision, safe_file
 from .workflow import execute
+from .access import code_digest, configured_codes
+from .featured import featured_cases
 
 
 def analyst_access(x_analyst_token: str = Header(default='')):
     if not LOCAL_ONLY and (not ANALYST_TOKEN or not hmac.compare_digest(x_analyst_token, ANALYST_TOKEN)):
         raise HTTPException(403, 'Analyst token required')
+
+
+def analysis_access(x_analysis_code: str = Header(default=''), x_analyst_token: str = Header(default='')):
+    if LOCAL_ONLY or (ANALYST_TOKEN and hmac.compare_digest(x_analyst_token, ANALYST_TOKEN)):
+        return None
+    digest = code_digest(x_analysis_code)
+    if not x_analysis_code or digest not in configured_codes():
+        raise HTTPException(403, 'Enter a valid analysis code to run a new analysis')
+    return digest
 
 
 def public_case(case, audience):
@@ -47,6 +58,7 @@ async def lifespan(app):
     else:
         store = Store()
     store.recover()
+    store.configure_codes(configured_codes())
     app.state.store = store
     app.state.queue = asyncio.Queue()
 
@@ -99,13 +111,24 @@ def scenarios():
     return result
 
 
-@app.get('/api/demo/paired', dependencies=[Depends(analyst_access)])
+@app.get('/api/demo/paired')
 def paired_demo():
     from .demo_probability import get_paired_demo
     try:
         return get_paired_demo()
     except (OSError, ValueError, KeyError, TypeError):
         raise HTTPException(503, 'Paired demo unavailable. Rebuild demo data and measure the source videos.')
+
+
+@app.get('/api/demo/featured')
+def featured():
+    return [{'id': case['id'], 'scenario_id': case['scenario_id'], 'state': case['state'],
+             'created_at': case['created_at']} for case in featured_cases()]
+
+
+@app.get('/api/access')
+def access(code=Depends(analysis_access)):
+    return app.state.store.code_status(code) if code else {'administrator': True, 'remaining': None}
 
 
 @app.get('/api/scenarios/{scenario}/events')
@@ -120,15 +143,17 @@ def events(scenario: str):
              'match_time_ms': clip['match_start_ms'] + clip['duration_ms'], 'text': 'Observation window ends'}]
 
 
-@app.post('/api/analyses', status_code=202, dependencies=[Depends(analyst_access)])
-async def start(body: AnalysisRequest):
+@app.post('/api/analyses', status_code=202)
+async def start(body: AnalysisRequest, code=Depends(analysis_access)):
     try:
+        if os.environ.get('PITCHGUARD_STORAGE_ACCOUNT_URL'):
+            await asyncio.to_thread(app.state.store.expire_stale)
         rev = await asyncio.to_thread(revision, body.scenario_id)
         case = {'id': uuid4().hex, 'scenario_id': body.scenario_id, 'player_id': body.player_id,
                 'input_revision': rev, 'mode': body.mode, 'created_at': utc(), 'state': 'queued',
                 'evidence': {}, 'calls': [], 'trace': [], 'branch_errors': {},
                 'injury_probability': None, 'probability_status': 'not_validated'}
-        result, created = app.state.store.create(case, body.client_request_id)
+        result, created = app.state.store.create(case, body.client_request_id, code=code)
     except ValueError as error:
         raise HTTPException(409, str(error))
     except (OSError, KeyError):
@@ -146,10 +171,16 @@ async def start(body: AnalysisRequest):
         else:
             await app.state.queue.put(result['id'])
     return {'case_id': result['id'], 'state': result['state'], 'cache_hit': not created,
+            'allowance': app.state.store.code_status(code) if code else None,
             'url': '/api/analyses/' + result['id']}
 
 
 def find_case(case_id):
+    published = next((case for case in featured_cases() if case['id'] == case_id), None)
+    if published:
+        return published
+    if os.environ.get('PITCHGUARD_STORAGE_ACCOUNT_URL'):
+        app.state.store.expire_stale()
     try:
         return app.state.store.get(case_id)
     except KeyError:
@@ -158,24 +189,26 @@ def find_case(case_id):
 
 @app.get('/api/analyses/{case_id}')
 def get_case(case_id: str, audience: str = Query('fan', pattern='^(fan|analyst)$'),
-             x_analyst_token: str = Header(default='')):
-    if audience == 'analyst':
-        analyst_access(x_analyst_token)
-    return public_case(find_case(case_id), audience)
+             x_analyst_token: str = Header(default=''), x_analysis_code: str = Header(default='')):
+    case = find_case(case_id)
+    if audience == 'analyst' and not case.get('public_demo'):
+        analysis_access(x_analysis_code, x_analyst_token)
+    return public_case(case, audience)
 
 
 @app.get('/api/analyses/{case_id}/evidence/{evidence_id}')
 def evidence(case_id: str, evidence_id: str, audience: str = Query('fan', pattern='^(fan|analyst)$'),
-             x_analyst_token: str = Header(default='')):
-    if audience == 'analyst':
-        analyst_access(x_analyst_token)
-    case = public_case(find_case(case_id), audience)
+             x_analyst_token: str = Header(default=''), x_analysis_code: str = Header(default='')):
+    original = find_case(case_id)
+    if audience == 'analyst' and not original.get('public_demo'):
+        analysis_access(x_analysis_code, x_analyst_token)
+    case = public_case(original, audience)
     if evidence_id not in case['evidence']:
         raise HTTPException(404, 'Evidence not available to this audience')
     return case['evidence'][evidence_id]
 
 
-@app.post('/api/analyses/{case_id}/acknowledgements', dependencies=[Depends(analyst_access)])
+@app.post('/api/analyses/{case_id}/acknowledgements', dependencies=[Depends(analysis_access)])
 def acknowledge(case_id: str):
     find_case(case_id)
     app.state.store.acknowledge(case_id)
@@ -184,7 +217,7 @@ def acknowledge(case_id: str):
 
 @app.get('/api/media/{clip_id}/{asset_id}')
 def media(clip_id: str, asset_id: str):
-    if clip_id not in ('S001', 'S002', 'S003', 'R001'):
+    if clip_id not in ('S001', 'S002', 'S003', 'S004', 'S006', 'R001'):
         raise HTTPException(404)
     from scripts.animation.run_vlm import load_clip
     try:

@@ -11,7 +11,7 @@ import bpy
 from mathutils import Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from motion import leg_pose, manifest, smooth, solve_leg, speed_at, trajectory, validate
+from motion import gait_track, leg_pose, manifest, smooth, solve_leg, speed_at, trajectory, validate
 
 
 def write_json(path, value):
@@ -138,6 +138,7 @@ def animate(config, player, panel):
     root, torso, legs, arms = player
     positions = trajectory(config)
     motion = config["motion"]
+    track = gait_track(config) if motion["profile"] == "slow_walk" else None
     for index, x in enumerate(positions):
         frame = index + 1
         t = index / config["fps"]
@@ -146,13 +147,18 @@ def animate(config, player, panel):
         phase = distance / motion["stride_m"]
         activity = speed / motion["speed_mps"]
         hip_z = 1.04 - 0.035 * activity + 0.01 * activity * math.cos(4 * math.pi * phase)
+        if track:
+            hip_z = track[index]["hip_z"]
         root.location = (x, 0, hip_z)
         root.keyframe_insert("location", frame=frame)
         torso.rotation_euler.y = 0.11 * speed / motion["speed_mps"]
+        torso.rotation_euler.x = track[index]["torso_roll"] if track else 0
         torso.keyframe_insert("rotation_euler", frame=frame)
         for side, ((hip, knee, ankle), (shoulder, elbow)) in enumerate(zip(legs, arms)):
             foot_x, foot_z, foot_phase = leg_pose(distance, side, motion)
             foot_z = 0.095 + (foot_z - 0.095) * (0.35 + 0.65 * activity)
+            if track:
+                foot_x, foot_z, foot_phase = track[index]["feet"][side]
             # Settle any airborne foot before t=8, then retain a planted standing pose.
             if motion["profile"] == "transition":
                 stop = motion["transition_seconds"][-1]
@@ -209,14 +215,19 @@ def main():
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--output", type=Path, default=Path("data/animation"))
     parser.add_argument("--preview", action="store_true", help="3 seconds at 640x360 in a separate directory")
+    parser.add_argument("--preview-start", type=float, default=0, help="Start time for the 3-second preview")
     parser.add_argument("--stills", action="store_true", help="Render only 10 evenly spaced preview stills")
     parser.add_argument("--overwrite", action="store_true", help="Replace this clip's generated outputs")
     args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
     started = time.perf_counter()
     config = json.loads(args.config.read_text(encoding="utf-8"))
     validate(config)
+    preview_start = round(args.preview_start * config["fps"])
+    if args.preview_start and not args.preview:
+        parser.error("--preview-start requires --preview")
+    if not 0 <= args.preview_start <= max(0, config["duration_seconds"] - 3):
+        parser.error("Preview window must fit within the clip")
     if args.preview:
-        config["duration_seconds"] = 3
         config["resolution"] = [640, 360]
     clip = config["scenario_id"]
     base = args.output.resolve()
@@ -249,23 +260,35 @@ def main():
     scene.frame_start, scene.frame_end = 1, count
     player, panel = create_stage(config)
     animate(config, player, panel)
+    scene.render.filepath = str(frames_dir / "frame_")
     scene.frame_set(1)
     bpy.ops.wm.save_as_mainfile(filepath=str(scenes / f"{clip}.blend"))
     selected = list(range(1, count + 1))
+    if args.preview:
+        selected = list(range(preview_start + 1, min(count, preview_start + 3 * config["fps"]) + 1))
     if args.stills:
         selected = [1 + round(i * (count - 1) / 9) for i in range(10)]
     frame_seconds = []
-    for frame in selected:
+    for output_frame, frame in enumerate(selected, 1):
         before = time.perf_counter()
         scene.frame_set(frame)
-        scene.render.filepath = str(frames_dir / f"frame_{frame:04d}.png")
+        number = output_frame if args.preview else frame
+        scene.render.filepath = str(frames_dir / f"frame_{number:04d}.png")
         bpy.ops.render.render(write_still=True)
         frame_seconds.append(time.perf_counter() - before)
         if len(frame_seconds) == 1:
             print(f"FIRST_FRAME_SECONDS={frame_seconds[0]:.3f}; ESTIMATE_SECONDS={frame_seconds[0] * len(selected):.1f}", flush=True)
     if not args.stills:
-        encode_video(scene, frames_dir, runtime / "video.mp4", count)
-        write_json(runtime / "input_manifest.json", manifest(config))
+        if args.preview:
+            scene.frame_start, scene.frame_end = 1, len(selected)
+        encode_video(scene, frames_dir, runtime / "video.mp4", len(selected))
+        value = manifest(config, selected)
+        if args.preview:
+            preview_config = dict(config, duration_seconds=len(selected) / config["fps"],
+                                  match_start_ms=config["match_start_ms"] + round(args.preview_start * 1000))
+            value = manifest(preview_config)
+            value["source_window_start_ms"] = round(args.preview_start * 1000)
+        write_json(runtime / "input_manifest.json", value)
     # Production metadata belongs outside runtime, where an image-reading tool cannot see labels.
     report_dir = base / "evaluation" / "results"
     report_dir.mkdir(parents=True, exist_ok=True)

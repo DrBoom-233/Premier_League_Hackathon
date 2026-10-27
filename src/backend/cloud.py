@@ -3,6 +3,7 @@ import asyncio
 import copy
 import json
 import os
+import threading
 import tempfile
 import time
 from contextlib import contextmanager
@@ -24,6 +25,7 @@ class BlobStore(Store):
                                os.environ.get('PITCHGUARD_STORAGE_CONTAINER', 'pitchguard'),
                                'state/cases.sqlite3', credential=self.credential)
         self.directory = tempfile.TemporaryDirectory(prefix='pitchguard-state-')
+        self.local_lock = threading.RLock()
         self.path = Path(self.directory.name) / 'state.sqlite3'
         # Initialize with the local implementation before the cloud override can run.
         Store(self.path)
@@ -34,6 +36,13 @@ class BlobStore(Store):
 
     @contextmanager
     def connect(self):
+        # API threads share a temp path: serialize local access as well as the Blob lease.
+        with self.local_lock:
+            with self._leased_connect() as db:
+                yield db
+
+    @contextmanager
+    def _leased_connect(self):
         from azure.core.exceptions import HttpResponseError
         lease = None
         # Short contention retry only for state locks; never retry a model call.
@@ -70,6 +79,7 @@ def make_store():
 
 async def dispatch_job(case_id):
     from azure.identity import DefaultAzureCredential
+    from azure.core.exceptions import AzureError
     resource = os.environ.get('PITCHGUARD_JOB_RESOURCE_ID', '')
     if not resource.startswith('/subscriptions/') or '/jobs/' not in resource:
         raise ValueError('Container Apps Job resource ID is not configured')
@@ -81,14 +91,16 @@ async def dispatch_job(case_id):
         async with httpx.AsyncClient(timeout=30) as client:
             response = await client.get(url + '?api-version=2024-03-01', headers=headers)
             response.raise_for_status()
-            template = copy.deepcopy(response.json()['properties']['template'])
+            # GET also returns volumes; Start accepts only its narrower execution contract.
+            template = {key: copy.deepcopy(value) for key, value in response.json()['properties']['template'].items()
+                        if key in ('containers', 'initContainers') and value is not None}
             container = next(c for c in template['containers'] if c['name'] == 'worker')
             container['env'] = [e for e in container.get('env', []) if e['name'] != 'PITCHGUARD_CASE_ID']
             container['env'].append({'name': 'PITCHGUARD_CASE_ID', 'value': case_id})
-            response = await client.post(url + '/start?api-version=2024-03-01', headers=headers, json={'template':template})
+            response = await client.post(url + '/start?api-version=2024-03-01', headers=headers, json=template)
             response.raise_for_status()
-            return response.json().get('name', 'accepted')
-    except httpx.HTTPError:
+            return response.json().get('name', 'accepted') if response.content else 'accepted'
+    except (httpx.HTTPError, AzureError):
         raise ValueError('Azure Job dispatch failed; case persisted, explicit retry required') from None
     finally:
         credential.close()

@@ -50,6 +50,8 @@ const base = process.env.PITCHGUARD_BASE_URL || 'http://127.0.0.1:8000';
   await page.waitForFunction(()=>[...document.querySelectorAll('video')].every(v=>v.readyState>=2&&!v.seeking));
   await page.screenshot({path:'.tools/demo-mobile.png',fullPage:true});
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'Mobile horizontal overflow');
+  if(!await page.getByRole('button',{name:/Replay 3/}).isVisible())
+    await page.getByText('More replays · speed examples and occlusion',{exact:true}).click();
   await page.getByRole('button',{name:/Replay 3/}).click();
   await page.waitForFunction(()=>!document.querySelector('.claim'));
   await page.getByRole('button',{name:'Analyst',exact:true}).click();

@@ -1,13 +1,15 @@
 {
-  "model_version": "paired-demo-bernoulli-v1",
+  "model_version": "paired-demo-bernoulli-v2",
   "seeds": "paired-demo-history/future + ID",
   "event_definition": "First new non-contact time-loss event in (as_of, as_of+168h]",
-  "population": "Four stipulated what-if worlds; initially uninjured; no competing causes in this toy world",
+  "population": "Six stipulated what-if worlds; initially uninjured; no competing causes in this toy world",
   "event_law": {
     "base_daily_rate": 0.004,
     "fatigue_rate": 0.008,
-    "slowing_rate": 0.016
+    "visual_state_rate": 0.016,
+    "gait_variation_threshold": 0.12,
+    "visual_state": "Stopping in speed worlds; step-span variation >= threshold in gait worlds. Separate what-if families, not additive factors."
   },
-  "media": "Reuse S001/S002/R001 templates. Shared avatar, not four independent personal baselines.",
+  "media": "Reuse S001/S002/S006/S004/R001. Gait worlds stipulate the same rate increment for measured step-span variation. Shared avatar, not independent personal baselines.",
   "qualification": "No training, calibration, independent accuracy or medical validity claimed."
 }

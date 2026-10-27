@@ -1,7 +1,8 @@
 param(
-    [ValidateSet('all', 'S001', 'S002', 'S003', 'R001')][string]$Scenario = 'all',
+    [ValidateSet('all', 'S001', 'S002', 'S003', 'S004', 'S006', 'R001')][string]$Scenario = 'all',
     [string]$Blender = '',
     [switch]$Preview,
+    [double]$PreviewStart = 0,
     [switch]$Stills,
     [switch]$Overwrite
 )
@@ -12,12 +13,12 @@ if (-not (Test-Path -LiteralPath $Blender)) { throw 'Blender not found. Run setu
 $oldResources = $env:BLENDER_USER_RESOURCES
 try {
     $env:BLENDER_USER_RESOURCES = Join-Path $projectRoot '.tools\blender-user'
-    $clips = if ($Scenario -eq 'all') { @('S001', 'S002', 'S003', 'R001') } else { @($Scenario) }
+    $clips = if ($Scenario -eq 'all') { @('S001', 'S002', 'S003', 'S004', 'S006', 'R001') } else { @($Scenario) }
     foreach ($clipId in $clips) {
         $options = @('-b', '-t', '8', '--python-exit-code', '1', '--python', (Join-Path $PSScriptRoot 'build_scene.py'), '--',
             '--config', (Join-Path $projectRoot "data\animation\configs\$clipId.json"),
             '--output', (Join-Path $projectRoot 'data\animation'))
-        if ($Preview) { $options += '--preview' }
+        if ($Preview) { $options += @('--preview', '--preview-start', $PreviewStart.ToString([Globalization.CultureInfo]::InvariantCulture)) }
         if ($Stills) { $options += '--stills' }
         if ($Overwrite) { $options += '--overwrite' }
         & $Blender @options

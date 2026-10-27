@@ -55,7 +55,7 @@ class SingleOutput(Contract):
 
 
 class AnalysisRequest(Contract):
-    scenario_id: Literal['S001', 'S002', 'S003']
+    scenario_id: Literal['S001', 'S002', 'S003', 'S004', 'S006']
     player_id: Literal['P001'] = 'P001'
     client_request_id: str = Field(min_length=1, max_length=100, pattern=r'^[a-zA-Z0-9_-]+$')
     mode: Literal['multi', 'single'] = 'multi'

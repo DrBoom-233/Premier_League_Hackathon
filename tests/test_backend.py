@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from src.backend import app as api
 from src.backend.config import DATA
 from src.backend.history import get_history_summary, number
-from src.backend.schemas import MotionOutput, Recheck, validate_claims, validate_window
+from src.backend.schemas import AnalysisRequest, MotionOutput, Recheck, validate_claims, validate_window
 from src.backend.store import Store, utc
 from src.backend.tools import get_frames, get_history_evidence, revision, safe_file
 from src.backend.workflow import execute
@@ -158,12 +158,25 @@ class BackendTests(unittest.TestCase):
             self.assertNotIn('decision',fan)
             self.assertTrue(all(e['kind']=='frame' for e in fan['evidence'].values()))
 
+    def test_featured_gait_pair_inputs_and_media(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(api,'Store',lambda:Store(Path(directory)/'db')):
+            with TestClient(api.app) as client:
+                scenarios = client.get('/api/scenarios').json()
+                self.assertEqual([s['id'] for s in scenarios[:2]], ['S006', 'S004'])
+                for sid in ('S006', 'S004'):
+                    self.assertEqual(AnalysisRequest(scenario_id=sid,client_request_id='test').scenario_id,sid)
+                    _, evidence = get_frames(sid)
+                    self.assertEqual(len(evidence),10)
+                    frame = next(e for e in evidence.values() if e['clip_id']==sid)
+                    self.assertEqual(client.get(frame['image_url']).status_code,200)
+                    self.assertEqual(client.get(f'/api/media/{sid}/video',headers={'Range':'bytes=0-100'}).status_code,206)
+
     def test_api_missing_input_unknown_media_and_hosted_auth(self):
         with tempfile.TemporaryDirectory() as directory, patch.object(api,'Store',lambda:Store(Path(directory)/'db')):
             with TestClient(api.app) as client:
                 self.assertEqual(client.get('/api/health').status_code,200)
                 self.assertEqual(client.get('/api/media/S002/../.env').status_code,404)
-                self.assertEqual(client.get('/api/media/S004/video').status_code,404)
+                self.assertEqual(client.get('/api/media/S005/video').status_code,404)
                 self.assertEqual(client.post('/api/analyses',json={'scenario_id':'S001','player_id':'P002','client_request_id':'x'}).status_code,422)
                 with patch.object(api,'LOCAL_ONLY',False),patch.object(api,'ANALYST_TOKEN','required'):
                     self.assertEqual(client.post('/api/analyses',json={'scenario_id':'S001','client_request_id':'x'}).status_code,403)

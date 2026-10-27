@@ -1,3 +1,5 @@
+> Latest release update, 2026-10-27: the Azure demo was deployed on October 26. See [deployment overview](DEPLOYMENT.md) for the hosted version. Older statements below about pending cloud deployment are historical.
+
 # PitchGuard runbook
 
 ## Local

@@ -10,11 +10,23 @@ created by our scripts; no third-party character or motion assets are used.
 | S001 | Steady stylized jogging | 10 s | 240 |
 | S002 | Jog, slow toward walking, settle, stand from 8 s | 10 s | 240 |
 | S003 | Same motion as S002, foreground equipment obscures legs around 4–6 s | 10 s | 240 |
+| S004 | Jog 0–3 s, slow 3–5 s, then sustained fictional limping gait | 10 s | 240 |
+| S006 | Same speed/path as S004, symmetric gait throughout | 10 s | 240 |
 | R001 | Separately generated reference, different initial gait phase | 3 s | 72 |
 
 All clips use 1280 × 720, 24 fps, the same character, fixed orthographic camera,
 lighting and clothing. These are stylized motion approximations, not biomechanical
-or injury simulations. S002 and S003 belong to the same evaluation group.
+or medically validated injury simulations. S002/S003 belong to one evaluation
+group; S004/S006 belong to another. Keep each pair in the same data split.
+S005 remains reserved for the optional camera-change experiment.
+
+The new pair uses event-planned foot contacts. During the asymmetric section,
+the near-camera leg takes the shorter forward step and spends less of the cycle
+in support; the other leg has a longer support phase. The pelvis dips and the
+torso rolls slightly. Both clips have exactly the same root x trajectory and
+speed; asymmetry does not change clothing, lighting or camera. Step parameters
+are fixed before each swing to preserve planted feet, so the gait changes over
+successive steps during/after the 3–5 s transition. Body/foot geometry is unchanged.
 
 Local output layout:
 
@@ -55,7 +67,14 @@ $Python = 'C:\Users\Charlie\anaconda3\python.exe'
 # Ten evenly spaced 1280x720 stills across the complete action
 ./scripts/animation/render.ps1 -Scenario S002 -Stills
 
-# All three core clips plus the independent reference
+# Inspect the actual limping section in a 3-second low-resolution preview
+./scripts/animation/render.ps1 -Scenario S004 -Preview -PreviewStart 6
+
+# Rebuild just the new pair
+./scripts/animation/render.ps1 -Scenario S004
+./scripts/animation/render.ps1 -Scenario S006
+
+# All five current clips plus the independent reference
 ./scripts/animation/render.ps1 -Scenario all *> data/animation/batch.log
 & $Python scripts/animation/verify_outputs.py
 ```
@@ -97,8 +116,9 @@ images count toward the request budget. Never use `generation_notes.md` or
 
 ## Optional later VLM test
 
-The current delivery is **animation only**. Real model inference and human
-annotation remain pending. The following dry run checks image inputs locally and
+S004/S006 now participate in the dashboard and separate synthetic probability
+demo. A real S006 Agent run completed on 2026-10-26; comparative model evaluation
+of the pair and human annotation remain pending. The following dry run checks image inputs locally and
 records `not_run`; it makes no network request:
 
 ```powershell
@@ -122,12 +142,20 @@ failures. JSON/citation checks cannot establish visual correctness or rule out
 medical claims: review the actual output. No inference has been claimed from a
 dry run, and no API prices or costs are assumed.
 
+S004/S006 are also available in the live dashboard as the featured matched pair.
+The same independent synthetic P001 history and R001 reference are linked for
+qualitative analysis; these are not measured longitudinal records. The probability
+simulator features S006/S004 shoe-span measurements, with S001/S002 speed cases
+available as secondary examples. No new model call is needed to use that simulator,
+and model recognition of the new gait pair remains unvalidated.
+
 ## Acceptance
 
 `verify_outputs.py` checks all PNG names/dimensions, exact manifest time mapping,
 editable scene existence, H.264 metadata, frame counts, duration and fps.
 `test_animation.py` checks planted feet, inverse kinematics, continuous slowing,
-paired motion, neutral runtime metadata and bounded frame/citation handling.
+paired motion, unequal step lengths/support durations, neutral runtime metadata
+and bounded frame/citation handling.
 
 A person must still watch each full video, assess motion artifacts/readability,
 and fill `evaluation/annotations.json` with actual observations and reviewed

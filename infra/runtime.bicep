@@ -16,6 +16,8 @@ param modelDeployment string = 'gpt-4.1-mini'
 param modelKey string
 @secure()
 param analystToken string
+@secure()
+param analysisCodes string
 var commonEnv = [
   { name: 'PITCHGUARD_LOCAL_ONLY', value: 'false' }
   { name: 'PITCHGUARD_STORAGE_ACCOUNT_URL', value: storageUrl }
@@ -77,7 +79,7 @@ resource api 'Microsoft.App/containerApps@2024-03-01' = {
       activeRevisionsMode: 'Single'
       ingress: { external: true, targetPort: 8000, transport: 'auto', allowInsecure: false }
       registries: [{ server: registryServer, identity: apiIdentityId }]
-      secrets: [{ name: 'model-key', value: modelKey }, { name: 'analyst-token', value: analystToken }]
+      secrets: [{ name: 'model-key', value: modelKey }, { name: 'analyst-token', value: analystToken }, { name: 'analysis-codes', value: analysisCodes }]
     }
     template: {
       containers: [{
@@ -88,8 +90,9 @@ resource api 'Microsoft.App/containerApps@2024-03-01' = {
           { name: 'AZURE_CLIENT_ID', value: apiClientId }
           { name: 'PITCHGUARD_JOB_RESOURCE_ID', value: job.id }
           { name: 'PITCHGUARD_ANALYST_TOKEN', secretRef: 'analyst-token' }
+          { name: 'PITCHGUARD_ANALYSIS_CODES', secretRef: 'analysis-codes' }
         ]) }]
-      scale: { minReplicas: 0, maxReplicas: 1, rules: [{ name: 'http', http: { metadata: { concurrentRequests: '10' } } }] }
+      scale: { minReplicas: 1, maxReplicas: 1, rules: [{ name: 'http', http: { metadata: { concurrentRequests: '10' } } }] }
     }
   }
   dependsOn: [startPermission]

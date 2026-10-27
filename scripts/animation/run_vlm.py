@@ -11,9 +11,9 @@ import urllib.parse
 import urllib.request
 
 try:
-    from .motion import sample_frames
+    from .motion import CLIP_IDS, SCENARIO_IDS, sample_frames
 except ImportError:
-    from motion import sample_frames
+    from motion import CLIP_IDS, SCENARIO_IDS, sample_frames
 
 PROMPT_VERSION = "motion-observer-v1"
 PROMPT = """Observe the target player P001 in these ordered synthetic football frames.
@@ -40,7 +40,7 @@ def safe_file(base, relative):
 
 
 def load_clip(runtime, clip):
-    if clip not in {"S001", "S002", "S003", "R001"}:
+    if clip not in CLIP_IDS:
         raise ValueError("Unknown clip ID")
     base = runtime / clip
     value = json.loads(safe_file(base, "input_manifest.json").read_text())
@@ -108,7 +108,7 @@ def call_model(content):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--scenario", choices=["S001", "S002", "S003"], required=True)
+    parser.add_argument("--scenario", choices=SCENARIO_IDS, required=True)
     parser.add_argument("--runtime", type=Path, default=Path("data/animation/runtime"))
     parser.add_argument("--results", type=Path, default=Path("data/animation/evaluation/results"))
     parser.add_argument("--run", action="store_true", help="Send images to configured model (billable)")

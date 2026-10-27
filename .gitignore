@@ -19,3 +19,6 @@ data/animation/previews/
 data/animation/*.log
 data/animation/evaluation/results/*
 !data/animation/evaluation/results/.gitkeep
+
+output/
+~$*

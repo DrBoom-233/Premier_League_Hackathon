@@ -35,10 +35,11 @@ resource insights 'Microsoft.Insights/components@2020-02-02' = {
   kind: 'web'
   properties: { Application_Type: 'web', WorkspaceResourceId: logs.id }
 }
-resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = {
-  name: '${prefix}-environment'
+resource environment 'Microsoft.App/managedEnvironments@2026-07-01' = {
+  name: '${prefix}-standard'
   location: location
   properties: {
+    environmentMode: 'WorkloadProfiles'
     workloadProfiles: [{ name: 'Consumption', workloadProfileType: 'Consumption' }]
     appLogsConfiguration: {
       destination: 'log-analytics'

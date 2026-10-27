@@ -5,6 +5,8 @@
   "clips": [
     {"scenario_id": "S001", "reviewer": null, "reviewed_at": null, "observations": []},
     {"scenario_id": "S002", "reviewer": null, "reviewed_at": null, "observations": []},
-    {"scenario_id": "S003", "reviewer": null, "reviewed_at": null, "observations": []}
+    {"scenario_id": "S003", "reviewer": null, "reviewed_at": null, "observations": []},
+    {"scenario_id": "S004", "evaluation_group": "G004", "reviewer": null, "reviewed_at": null, "observations": []},
+    {"scenario_id": "S006", "evaluation_group": "G004", "reviewer": null, "reviewed_at": null, "observations": []}
   ]
 }

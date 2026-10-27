@@ -6,8 +6,10 @@ from datetime import date, datetime, timedelta
 from .config import DATA, RUNTIME
 from .history import sha
 
-VERSION = 'paired-demo-bernoulli-v1'
+VERSION = 'paired-demo-bernoulli-v2'
 EXTRACTOR = 'blue-avatar-centroid-v1'
+GAIT_EXTRACTOR = 'orange-shoe-step-span-v1'
+GAIT_THRESHOLD = .12  # Stipulated demo threshold, not medically calibrated.
 # Illustrative conditional daily event rates, not estimates from medical evidence.
 BASE_RATE = .004
 HISTORY_RATE = .008
@@ -31,11 +33,17 @@ def predict(history, visual):
     available = visual.get('status') == 'measured'
     motion = visual.get('motion_state') if available else None
     if available:
-        ratio = visual['late_speed_ratio']
-        if (visual.get('extractor_version') != EXTRACTOR or not math.isfinite(ratio)
+        if visual.get('extractor_version') == GAIT_EXTRACTOR:
+            variation = visual['step_span_variation']
+            if (not math.isfinite(variation) or not 0 <= variation <= 1
+                    or motion != int(variation >= GAIT_THRESHOLD)):
+                raise ValueError('Unsupported or inconsistent gait measurement')
+        else:
+            ratio = visual['late_speed_ratio']
+            if (visual.get('extractor_version') != EXTRACTOR or not math.isfinite(ratio)
                 or not (0 <= ratio <= .4 or .75 <= ratio <= 1.5)
                 or motion != int(ratio <= .4)):
-            raise ValueError('Unsupported or inconsistent video measurement')
+                raise ValueError('Unsupported or inconsistent video measurement')
     value = event_probability(fatigue, motion) if available else None
     return {'value': value, 'history_only_value': baseline, 'horizon_hours': 168,
             'model_version': VERSION, 'data_mode': 'synthetic',
@@ -48,13 +56,17 @@ def get_paired_demo(data=DATA, runtime=RUNTIME):
     base = data / 'demo' / 'runtime'
     episodes = json.loads((base / 'episodes.json').read_text(encoding='utf-8'))
     visual = json.loads((base / 'video_features.json').read_text(encoding='utf-8'))
+    gait = json.loads((base / 'gait_features.json').read_text(encoding='utf-8'))
+    if gait['extractor_version'] != GAIT_EXTRACTOR:
+        raise ValueError('Gait artifact version mismatch; rebuild measurements')
+    visual['clips'].update(gait['clips'])
     if episodes['model_version'] != VERSION or visual['extractor_version'] != EXTRACTOR:
         raise ValueError('Demo artifact version mismatch; rebuild demo data')
     results = []
     digests = {}
     for episode in episodes['episodes']:
         clip = episode['current_clip_id']
-        if clip not in ('S001', 'S002') or episode['reference_clip_id'] != 'R001':
+        if clip not in ('S001', 'S002', 'S004', 'S006') or episode['reference_clip_id'] != 'R001':
             raise ValueError('Unsupported demo clip binding')
         as_of = datetime.fromisoformat(episode['as_of'])
         reference_at = datetime.fromisoformat(episode['reference_recorded_at'])
@@ -68,7 +80,12 @@ def get_paired_demo(data=DATA, runtime=RUNTIME):
                 or episode['history']['coverage_days'] != 28
                 or date.fromisoformat(episode['history']['cutoff']) != as_of.date() - timedelta(days=1)):
             raise ValueError('Invalid demo history/reference cutoff')
-        measurement = visual['clips'][clip]
+        measurement = dict(visual['clips'][clip])
+        is_gait = clip in ('S004', 'S006')
+        if is_gait:
+            if measurement['extractor_version'] != GAIT_EXTRACTOR:
+                raise ValueError('Wrong gait extractor')
+            measurement['motion_state'] = int(measurement['step_span_variation'] >= GAIT_THRESHOLD)
         for source_id in (clip, 'R001'):
             if source_id not in digests:
                 digests[source_id] = sha(runtime / source_id / 'video.mp4')
@@ -77,13 +94,15 @@ def get_paired_demo(data=DATA, runtime=RUNTIME):
         # Explicit projection: no offline future events or generator internals are served.
         results.append({k: episode[k] for k in ('id', 'title', 'world_id', 'player_id', 'as_of', 'history')} | {
             'video_url': f'/api/media/{clip}/video', 'reference_video_url': '/api/media/R001/video',
-            'visual': {k: measurement[k] for k in ('status', 'late_speed_ratio', 'samples', 'extractor_version')},
+            'comparison_group': 'gait' if is_gait else 'speed',
+            'visual': {k: measurement[k] for k in ('status', 'samples', 'extractor_version',
+                        *(['step_span_variation', 'peak_spans_px'] if is_gait else ['late_speed_ratio']))},
             'probability': predict(episode['history'], measurement),
             'target_end': (as_of + timedelta(hours=168)).isoformat()})
     return {'cases': results, 'scope': episodes['scope'], 'model_version': VERSION,
             'injury_probability': None, 'probability_status': 'not_validated',
             'limitations': [
-                'Four scripted what-if worlds, two motion templates and one shared avatar reference; not an evaluation cohort.',
+                'Six scripted what-if worlds, four current clips and one shared avatar reference; not an evaluation cohort.',
                 'Rates are stipulated by an illustrative Bernoulli event generator, not fitted or clinically validated.',
-                'Pixel tracking only supports this fixed-camera blue-avatar animation; no Foundry inference is used here.',
+                'Pixel tracking only supports these fixed-camera blue-avatar/orange-shoe animations; no Foundry inference is used here.',
                 'Future event draws remain offline and are not inputs to the probability calculation.']}

@@ -1,125 +1,41 @@
-# PitchGuard demo: teammate setup and deployment
+# PitchGuard deployment and setup
 
-This guide deploys the current demo from **main**. Start with the local route. Azure
-deployment is optional and creates billable resources. No model training is needed.
+[Live Azure demo](https://pgdemo-web.purpleground-33ee8913.francecentral.azurecontainerapps.io/) · [Demo video](https://www.youtube.com/watch?v=ezsUFydyIyI) · [Judge testing instructions](JUDGE_TESTING.md)
 
-## Branches
+## Deployed release
 
-- `main`: FastAPI/React application, Foundry Agent workflow, frozen v2 history snapshot,
-  and the four-case paired probability simulation.
-- `codex/teammate-model`: the teammate's original seven commits through `de2c530`,
-  including `train_model.py`, generator 3.0 and its changed CSVs. These files remain
-  available there; that experimental predictor is not wired into the main application.
+The application was deployed on October 26, 2026, in France Central, in the isolated resource group `rg-pitchguard-demo-20261026`. The release uses a versioned image in Azure Container Registry, a Container App for React/FastAPI, a finite Container Apps Job for new Agent analyses, private Blob-backed state, Application Insights, and Log Analytics. One GPT-4.1 mini deployment in Azure OpenAI / Foundry serves the four Agent roles.
 
-The main history was reorganized on 2026-10-24 at the repository owner's request.
-An existing clone based on the old main should not blindly merge it back. Save any
-local work first. For deployment, the simplest route is a fresh clone of main:
+Public visitors can play videos, inspect five saved real analyses and citations, switch Analyst/Fan views, and use the six-case paired simulator. New analyses require a private code. See [access and operational limits](AZURE_ISOLATED_RELEASE.md).
 
-```powershell
-git clone --branch main https://github.com/DrBoom-233/Premier_League_Hackathon.git
-cd Premier_League_Hackathon
-```
+Verification recorded 29 backend checks, seven animation checks, a production frontend build, Bicep compilation, local Docker packaging, and desktop/mobile browser checks. An end-to-end cloud analysis completed; a duplicate request returned the existing case without a second allowance charge. The completed case and quota persisted after a web revision restart. Stress testing and independent medical or visual validation remain separate work.
 
-The repository is private; the teammate needs GitHub access. To inspect the training
-experiment separately, fetch and check out `codex/teammate-model` in a separate clone.
+## Fresh local checkout
 
-## 1. Requirements
-
-- Python 3.12+ and Node.js 22.12+ / npm.
-- Windows PowerShell for the provided scripts.
-- Rendered runtime media, obtained as described below.
-- For new Agent analyses: access to an existing compatible Azure OpenAI/Foundry image
-  deployment. The configured implementation uses GPT-4.1 mini.
-- For the paired simulation alone: no Azure credentials, GPU service or paid model
-  calls are required once the media is available.
-
-## 2. Install and configure
+Requires Python 3.12+, Node.js 22.12+, and the rendered runtime assets.
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 npm.cmd --prefix src/frontend ci
-
-# Do not overwrite an existing configured .env.
+# Do not overwrite a configured .env.
 if (!(Test-Path -LiteralPath '.env')) { Copy-Item .env.example .env }
 ```
 
-For paid Agent analysis, edit `.env` locally:
+For new Agent runs, configure `.env` with a resource-root Azure OpenAI endpoint, compatible image-capable deployment, API version and key. Never put credentials in the frontend, commit them, or distribute them with screenshots. The separate paired simulator needs no model credential once its media is available.
 
-```dotenv
-AZURE_OPENAI_ENDPOINT=https://YOUR-RESOURCE.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=YOUR-DEPLOYMENT-NAME
-AZURE_OPENAI_API_VERSION=2024-10-21
-AZURE_OPENAI_API_KEY=YOUR-KEY
-PITCHGUARD_LOCAL_ONLY=true
-```
+Generated videos and frame sequences are Git-ignored. Copy the team's pre-rendered `data/animation/runtime/` bundle, including S001/S002/S003/S004/S006/R001 manifests and frames, or rebuild using the [animation guide](../data/animation/README.md). MP4 files alone are insufficient for Agent frame analysis.
 
-Use a resource-root endpoint, not a full API route. Leave credentials blank if only
-demonstrating the paired simulator. Never commit `.env`, `.gh-config`, `.state`, or
-Azure keys. Existing call/token caps apply; unknown unit prices are not reported as $0.
-
-## 3. Obtain media without unnecessary rendering
-
-The generated `data/animation/runtime/` directory is intentionally not in Git. A clean
-clone therefore needs this step before the full demo or Docker image will work.
-
-**Lowest additional compute cost:** copy the pre-rendered `data/animation/runtime/`
-directory from a teammate's working checkout. Keep its structure: S001, S002, S003 and
-R001 each have `video.mp4`, `input_manifest.json` and `frames/*.png`. Videos total about
-1.42 MiB, while the 792 full-resolution PNG frames total about 583 MiB. Keep those
-generated files outside normal Git commits. The full Agent workflow needs the frames;
-copying MP4s alone is not sufficient for it.
-
-If no pre-rendered bundle is available, rebuild locally with the pinned Blender helper:
-
-```powershell
-.\.venv\Scripts\python.exe scripts/animation/setup_blender.py
-.\scripts\animation\render.ps1 -Scenario all
-```
-
-The helper downloads a roughly 399 MB portable Blender archive once. Rendering needs
-a compatible local graphics device/driver; it does not create Azure resources or call
-a model. See [animation instructions](../data/animation/README.md) for using an
-existing Blender installation. Do not rerender an existing directory just for setup.
-
-Refresh the paired demo artifacts against the exact received/rebuilt MP4 bytes:
-
-```powershell
-.\.venv\Scripts\python.exe scripts/prepare_data.py
-.\.venv\Scripts\python.exe scripts/prepare_multimodal_demo.py
-$env:BLENDER_USER_RESOURCES = Join-Path (Get-Location) '.tools\blender-user'
-& '.\.tools\blender-4.5.9-windows-x64\blender.exe' -b -t 4 --python-exit-code 1 --python scripts/animation/measure_demo_video.py
-```
-
-If you copied media but do not have portable Blender yet, run the setup helper before
-the measurement command, or use the path to an installed compatible Blender. Measuring
-only decodes 18 small images; it does not rerender the animation or call Foundry.
-
-## 4. Build, start and demonstrate
+If the video bytes differ from the distributed measured artifacts, refresh the [paired simulator measurements](../data/demo/README.md), including `measure_gait_video.py`. Saved featured cases are tied to frame hashes: changed frames require a new explicit reviewed export, not relabeling an old case.
 
 ```powershell
 npm.cmd --prefix src/frontend run build
 .\scripts\run_demo.ps1
 ```
 
-Open [the local application](http://127.0.0.1:8000).
+Open `http://127.0.0.1:8000`. Keep local-only mode bound to loopback. Public hosting requires server-side access checks.
 
-- **No-paid-call path:** Analyst → **Paired probability demo**, or
-  [open it directly](http://127.0.0.1:8000/?view=paired). Switch between steady/slowing
-  cases with the same history to show the video's numerical contribution.
-- **Real Foundry path:** Replay analysis → choose replay → **Analyze replay**. This
-  can incur model charges unless cached. Inspect history, image citations and the fan
-  view. Model observations still need human review.
-
-The paired percentages follow a deliberately specified stochastic simulator. They
-are not trained/calibrated real-player injury predictions, and the independent Agent
-workflow does not generate them. See [the event law and limits](../data/demo/README.md).
-
-If port 8000 is in use, run `.\scripts\run_demo.ps1 -Port 8001` and use that port.
-
-## 5. Offline verification
-
-Run after the media and paired artifacts are ready:
+## Offline verification
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
@@ -127,66 +43,32 @@ Run after the media and paired artifacts are ready:
 npm.cmd --prefix src/frontend run build
 ```
 
-These checks do not call a model. The recorded local baseline has 20 backend checks,
-six animation checks and passing frontend/browser checks. A stored-case browser
-regression also needs the local, uncommitted case database; a fresh clone should not
-expect the original author's saved cases to be present.
+These commands do not request paid model inference. Media-dependent checks require the runtime bundle. The historical model experiment on `codex/teammate-model` is separate and not needed for application deployment.
 
-## 6. Optional local Docker container
+## Container and Azure operations
 
-Requires a working Docker engine and populated runtime media from step 3:
+With Docker running and runtime media present:
 
 ```powershell
 docker build -t pitchguard-demo .
-docker run --rm --name pitchguard-demo -p 127.0.0.1:8000:8000 --env-file .env -e PITCHGUARD_LOCAL_ONLY=true pitchguard-demo
+docker run --rm -p 127.0.0.1:8000:8000 --env-file .env -e PITCHGUARD_LOCAL_ONLY=true pitchguard-demo
 ```
 
-This example binds only to the local machine. It is a disposable container: its local
-analysis state is removed with the container. Use the normal local checkout for
-persistent local state, or the Blob-backed Azure route for the prepared hosted design.
-The Docker recipe exists, but local image build has not been verified in the original
-development environment. It is not evidence that cloud deployment has passed.
+The deployed release used local Docker build/push, not ACR Tasks. The checked-in `scripts/deploy.ps1` is the isolated release updater: its `-Apply` route requires the original prepared private sibling layout (CLI, Docker auth, foundation outputs, fallback Python environment and access state). Those files are deliberately excluded from Git. It is not a generic fresh-subscription bootstrap. Without `-Apply`, it prints the plan only.
 
-## 7. Optional Azure deployment
+The Bicep templates document the infrastructure. A new deployment needs the intended subscription, resource group, supported region and service capacity, scoped identities/RBAC, model access, immutable media and image, and private runtime parameters. Do not copy the original private release directory into a public checkout. Confirm the Azure preview scope before applying any changes. This README update does not redeploy the running service.
 
-Use this only if an external hosted demo is required. Requirements include Azure CLI
-login, the intended subscription, resource-deployment rights and permission to create
-RBAC assignments/custom roles. The existing Foundry deployment/key must be accessible.
-Do not expose `PITCHGUARD_LOCAL_ONLY=true` to a public network.
-
-```powershell
-az login
-az account set --subscription YOUR-SUBSCRIPTION-ID
-
-# The deployment script expects an existing resource group.
-az group create --name rg-pitchguard-v2 --location francecentral
-
-# Print the resource plan without deploying:
-.\scripts\deploy.ps1
-
-# Only after reviewing the plan and intended subscription:
-.\scripts\deploy.ps1 -SubscriptionId YOUR-SUBSCRIPTION-ID -ResourceGroup rg-pitchguard-v2 -Location francecentral -Apply
-```
-
-The script creates registry/storage/telemetry and Container Apps web/CPU Job resources,
-using the existing Foundry model. Azure ACR performs the image build; no local Docker
-daemon is required for that build path. Registry, storage, logs and model usage may
-cost money even when the app scales to zero. No extra GPU/model training service is
-needed. The script saves the hosted analyst token in `.state/analyst-token.txt`; share
-it privately with the tester, never in the repository or a public URL.
-
-On the printed HTTPS URL, verify health, media, token-gated analyst access, fan
-filtering, API→Job execution, persistence, cold start and failure recovery. Cloud
-deployment and these checks remain unverified. The hosted demo currently requires
-operator reconciliation for lost/crashed jobs; see [RUNBOOK.md](RUNBOOK.md).
+The web app keeps one small replica; a Job stops after finite execution. Compute, registry, Blob, logs, network and Foundry usage may incur charges. Defaults limit daily cases/calls/tokens and hosted concurrency. Access-code allowance is not reserved global capacity. Lost jobs need operator reconciliation; automatic paid retries and unlimited judge access are not claimed.
 
 ## Troubleshooting
 
-| Symptom | Action |
-|---|---|
-| Blank replay / runtime assets unavailable | Obtain/rebuild the full runtime media, not only CSVs. |
-| Paired demo returns 503 | Check MP4 presence and rerun the two demo preparation/measurement commands. Source hashes must match. |
-| Model configuration missing / 401 / 403 | Check resource-root endpoint, deployment, key and resource access; do not replace an error with a fabricated result. |
-| Hosted analyst access denied | Enter the generated analyst token; do not enable local-only mode publicly. |
-| Docker COPY fails for runtime media | Complete media setup before building; Git does not include rendered assets. |
-| Trying to train XGBoost on main | Use the separate experimental branch; training is not part of main deployment. |
+| Symptom | Check |
+| --- | --- |
+| Missing video or frames | Obtain the full runtime media bundle or rebuild it. |
+| Paired simulator rejects stale media | Remeasure against the exact MP4 bytes. |
+| No saved featured case | Verify exported case/frame hashes; do not fabricate a result. |
+| Azure inference fails | Check resource endpoint, deployment, server credentials and remaining budgets. |
+| New analysis is disabled | Supply the privately issued code and unlock analysis. Public browsing remains available. |
+| Hosted task stays queued or fails | Inspect the Job execution and durable case; no automatic paid replay is performed. |
+
+Do not publish `.env`, `.state`, CLI sessions, generated access codes, or private release backups.

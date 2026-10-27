@@ -1,4 +1,4 @@
-"""Build four inexpensive what-if cases; no rendering, network, training or labels at runtime."""
+"""Build six inexpensive what-if cases; no rendering, network, training or labels at runtime."""
 import csv
 import hashlib
 import json
@@ -32,7 +32,7 @@ def generate(output=DATA / 'demo'):
                          'sleep_hours': round(rng.uniform(7.2, 8.5) if profile == 'lower' else rng.uniform(5.8, 7), 1)})
         profiles[profile] = rows
     episodes, future = [], []
-    for index, (profile, state) in enumerate((('lower', 0), ('lower', 1), ('higher', 0), ('higher', 1)), 1):
+    for index, (profile, state) in enumerate((('lower', 0), ('lower', 1), ('higher', 0), ('higher', 1), ('lower', 0), ('lower', 1)), 1):
         eid = f'DEMO{index:02d}'
         rows = profiles[profile]
         fatigue = sum(r['fatigue_score'] for r in rows[-7:]) / 7
@@ -42,11 +42,12 @@ def generate(output=DATA / 'demo'):
                    'sleep_7d_mean': round(sum(r['sleep_hours'] for r in rows[-7:]) / 7, 2),
                    'profile_sha256': hashlib.sha256(json.dumps(rows, sort_keys=True).encode()).hexdigest()}
         episodes.append({'id': eid, 'world_id': eid, 'player_id': 'P001',
-                         'title': f'{profile.capitalize()} fatigue / ' + ('slowing replay' if state else 'steady replay'),
+                         'title': (('S004 / Asymmetric gait' if state else 'S006 / Symmetric gait') if index>4
+                                   else f'{profile.capitalize()} fatigue / ' + ('slowing replay' if state else 'steady replay')),
                          'as_of': as_of.isoformat(), 'history': history,
                          'clip_start_at': (as_of - timedelta(seconds=10)).isoformat(),
                          'clip_end_at': as_of.isoformat(),
-                         'current_clip_id': 'S002' if state else 'S001', 'reference_clip_id': 'R001',
+                         'current_clip_id': (('S004' if state else 'S006') if index>4 else ('S002' if state else 'S001')), 'reference_clip_id': 'R001',
                          'reference_recorded_at': (as_of - timedelta(seconds=70)).isoformat(),
                          'reference_end_at': (as_of - timedelta(seconds=67)).isoformat()})
         rng = random.Random('paired-demo-future-' + eid)
@@ -64,8 +65,8 @@ def generate(output=DATA / 'demo'):
                        'label_7d': int(bool(events)), 'events': events,
                        'generator_probability': event_probability(fatigue, state)})
     write_json(output / 'runtime' / 'episodes.json', {'model_version': VERSION,
-               'scope': {'scripted_cases': 4, 'history_profiles': 2, 'days_per_profile': 28,
-                         'unique_current_videos': 2, 'shared_reference_videos': 1,
+               'scope': {'scripted_cases': 6, 'history_profiles': 2, 'days_per_profile': 28,
+                         'unique_current_videos': 4, 'shared_reference_videos': 1,
                          'new_paid_calls': 0, 'new_3d_frames': 0, 'purpose': 'what_if_demo_not_training_or_calibration'},
                'episodes': episodes})
     offline = output / 'offline'
@@ -78,13 +79,15 @@ def generate(output=DATA / 'demo'):
     write_json(offline / 'future_events.json', future)
     write_json(offline / 'generation.json', {'model_version': VERSION, 'seeds': 'paired-demo-history/future + ID',
                'event_definition': 'First new non-contact time-loss event in (as_of, as_of+168h]',
-               'population': 'Four stipulated what-if worlds; initially uninjured; no competing causes in this toy world',
-               'event_law': {'base_daily_rate': BASE_RATE, 'fatigue_rate': HISTORY_RATE, 'slowing_rate': MOTION_RATE},
-               'media': 'Reuse S001/S002/R001 templates. Shared avatar, not four independent personal baselines.',
+               'population': 'Six stipulated what-if worlds; initially uninjured; no competing causes in this toy world',
+               'event_law': {'base_daily_rate': BASE_RATE, 'fatigue_rate': HISTORY_RATE,
+                             'visual_state_rate': MOTION_RATE, 'gait_variation_threshold': .12,
+                             'visual_state': 'Stopping in speed worlds; step-span variation >= threshold in gait worlds. Separate what-if families, not additive factors.'},
+               'media': 'Reuse S001/S002/S006/S004/R001. Gait worlds stipulate the same rate increment for measured step-span variation. Shared avatar, not independent personal baselines.',
                'qualification': 'No training, calibration, independent accuracy or medical validity claimed.'})
     return episodes
 
 
 if __name__ == '__main__':
     generate()
-    print('Built four paired demo worlds, 56 history rows and four offline follow-ups; no paid calls or new 3D render.')
+    print('Built six paired demo worlds, 56 history rows and six offline follow-ups; no paid calls or new 3D render.')

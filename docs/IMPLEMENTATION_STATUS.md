@@ -1,4 +1,18 @@
-# PitchGuard implementation status — 2026-10-23
+> Latest release update, 2026-10-27: the Azure demo was deployed on October 26. See [deployment overview](DEPLOYMENT.md) for the hosted version. Older statements below about pending cloud deployment are historical.
+
+# PitchGuard implementation status — updated 2026-10-26
+
+
+Current delivery, 2026-10-26 (older dated entries below are historical):
+
+- Replay opens on S006 alongside S004, with paired playback from 5s, selected-clip analysis and frame citations. S001/S002/S003 are under More replays.
+- The probability panel now has six scripted worlds and four current videos. Its featured S006/S004 pair holds history/speed/path fixed and measures orange-shoe separation variation from 120 decoded frames per clip. S001/S002 speed examples remain secondary.
+- Measured variation: S006=0.0323, S004=0.2328. A stipulated 0.12 cutoff changes the synthetic daily event rate; displayed joint probabilities are 4.13% and 14.42%, with identical history-only values of 9.27%. This is not learned or clinically validated predictive performance.
+- A real S006 case `d0736841e51e4be5bc2ddbd8d3d070c1` completed after correcting Azure credentials: history cached, three new calls. It is not evidence of reliable gait recognition. Pair-level human/model validation remains pending.
+- Latest verification: 22 backend tests, React production build, presentation browser checks and all-six-case probability browser checks pass; simulator extension uses zero paid calls/new 3D frames. Earlier saved-case browser regression passed before the final simulator extension. No new animation test or cloud deployment is claimed here.
+- Agent history and simulator history are separate synthetic inputs. The simulator uses mean fatigue plus the measured visual state; it does not consume all Agent historical metrics or the Agent narrative.
+
+See [demo data specification](../data/demo/README.md), [deployment guide](DEPLOYMENT.md) and [Chinese presentation guide](PRESENTATION_GUIDE_ZH.md).
 
 Demo-scope update, 2026-10-24: a separate Analyst **Paired probability demo** now
 combines two 28-day synthetic history profiles and actual pixel measurements from

@@ -13,11 +13,13 @@ const base = process.env.PITCHGUARD_BASE_URL || 'http://127.0.0.1:8000';
     const response=await page.request.get(base+'/api/demo/paired');
     assert.equal(response.status(),200);
     const data=await response.json();
-    assert.equal(data.cases.length,4);
+    assert.equal(data.cases.length,6);
     for(const field of ['label_7d','generator_probability','future_event'])assert(!JSON.stringify(data).includes(field));
     await page.goto(base+'/?view=paired');
     const region=page.getByRole('region',{name:'Paired probability simulation'});
     await region.getByText('History and video, together.',{exact:true}).waitFor();
+    assert.match(await region.getByLabel('Paired current replay').getAttribute('src'),/S006/);
+    await region.getByText('More probability examples · S001/S002 speed comparison',{exact:true}).click();
     for(const item of data.cases){
       await region.getByRole('button',{name:item.title,exact:true}).click();
       assert.equal(await region.getByTestId('joint-probability').innerText(),(item.probability.value*100).toFixed(1)+'%');
@@ -27,7 +29,10 @@ const base = process.env.PITCHGUARD_BASE_URL || 'http://127.0.0.1:8000';
     }
     assert.equal(data.cases[0].probability.history_only_value,data.cases[1].probability.history_only_value);
     assert.notEqual(data.cases[0].probability.value,data.cases[1].probability.value);
-    await region.getByRole('button',{name:data.cases[1].title,exact:true}).click();
+    assert.deepEqual(data.cases[4].history,data.cases[5].history);
+    assert(data.cases[4].probability.value<data.cases[5].probability.value);
+    assert.equal(data.cases[4].probability.history_only_value,data.cases[5].probability.history_only_value);
+    await region.getByRole('button',{name:data.cases[5].title,exact:true}).click();
     await page.waitForFunction(()=>[...document.querySelectorAll('video')].every(v=>v.readyState>=2&&!v.seeking));
     for(const name of ['Paired current replay','Paired reference replay']){
       const video=region.getByLabel(name);
@@ -39,7 +44,7 @@ const base = process.env.PITCHGUARD_BASE_URL || 'http://127.0.0.1:8000';
     fs.mkdirSync('.tools',{recursive:true});
     await page.screenshot({path:'.tools/paired-demo-desktop.png',fullPage:true});
     await region.getByText('Inspect video measurements',{exact:true}).click();
-    assert.equal(await region.locator('tbody tr').count(),7);
+    assert.equal(await region.locator('tbody tr').count(),120);
     await page.setViewportSize({width:390,height:844});
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
     await page.screenshot({path:'.tools/paired-demo-mobile.png',fullPage:true});
@@ -47,6 +52,6 @@ const base = process.env.PITCHGUARD_BASE_URL || 'http://127.0.0.1:8000';
     assert.equal(await page.getByRole('region',{name:'Paired probability simulation'}).count(),0);
     assert.equal(await page.getByRole('button',{name:'Paired probability demo',exact:true}).count(),0);
     assert.equal(paidPosts,0);assert.deepEqual(errors,[]);
-    console.log('PASS: four paired cases, exact probabilities, real video metadata, pixel evidence, mobile, fan hiding; zero paid POST.');
+    console.log('PASS: six paired cases, gait probability increases with fixed history, exact probabilities, real video metadata, 120-frame pixel evidence, mobile, fan hiding; zero paid POST.');
   } finally {await browser.close();}
 })().catch(error=>{console.error(error);process.exit(1);});
