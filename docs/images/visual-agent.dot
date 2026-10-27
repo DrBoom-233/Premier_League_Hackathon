@@ -1,0 +1,31 @@
+digraph Vision { graph [rankdir=TB, bgcolor="white", pad="0.35", nodesep="0.45", ranksep="0.48", fontname="Arial", fontsize=18];
+node [shape=box, style="rounded,filled", fillcolor="#eef5ff", color="#7697c3", fontname="Arial", fontsize=18, margin="0.24,0.17", penwidth=1.3];
+edge [color="#536780", fontname="Arial", fontsize=15, arrowsize=0.8, penwidth=1.3];
+  replay [label="Current replay
+7 sampled frames"];
+  reference [label="Independent reference
+3 sampled frames"];
+  motion [label="Motion Analyst Agent
+GPT-4.1 mini",fillcolor="#dbeafe"];
+  observations [label="Activity observations
+Frame IDs and visibility limits"];
+  investigator [label="Evidence Investigator
+Check claims",fillcolor="#dbeafe"];
+  question [shape=diamond,label="Useful
+recheck?",margin="0.18,0.10",fillcolor="#fff5df"];
+  window [label="One interval, up to 3 seconds
+8 current + 2 reference frames"];
+  reassess [label="Motion Analyst
+Reassess interval",fillcolor="#dbeafe"];
+  decision [label="Final evidence decision"];
+  output [label="Cited analyst brief
+and public fan explanation",fillcolor="#e5f4ed"];
+  {rank=same; replay; reference;}
+  replay -> motion;
+  reference -> motion;
+  motion -> observations -> investigator -> question;
+  question -> window [label="Yes, once"];
+  window -> reassess -> decision;
+  question -> decision [label="No"];
+  decision -> output;
+}

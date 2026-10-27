@@ -1,6 +1,6 @@
 # PitchGuard AI
 
-**[Open the live Azure demo](https://pgdemo-web.purpleground-33ee8913.francecentral.azurecontainerapps.io/) · [Watch the 1:46 demo video](https://www.youtube.com/watch?v=ezsUFydyIyI)**
+**[Open the live Azure demo](https://pgdemo-web.purpleground-33ee8913.francecentral.azurecontainerapps.io/) · [Watch Demo Video](https://www.youtube.com/watch?v=ezsUFydyIyI)**
 
 Microsoft Premier League Hackathon · Explainable football analysis through player history, movement evidence, and multi-agent collaboration.
 
@@ -47,70 +47,27 @@ Browsing videos, saved cases, evidence, and simulations is free and requires no 
 
 ## Agent system architecture
 
-```mermaid
-flowchart TD
-    H["Synthetic player history"] --> F["Cutoff-safe historical summaries"]
-    V["Replay and independent reference"] --> X["Ordered frames with timestamps"]
-    subgraph W["Microsoft Agent Framework workflow"]
-        HA["Historical Analyst Agent"]
-        MA["Motion Analyst Agent"]
-        IA["Evidence Investigator Agent"]
-        NA["Match Narrative Agent"]
-        HA --> IA
-        MA --> IA
-        IA -. "At most one targeted recheck" .-> MA
-        IA --> NA
-    end
-    F --> HA
-    X --> MA
-    IA --> A["Analyst view: evidence and limitations"]
-    NA --> P["Fan view: accepted public visual facts"]
-    AZ["Azure OpenAI in Foundry: shared GPT-4.1 mini deployment"] -. "Model inference" .-> W
-    DH["Separate demo history"] --> S["Synthetic probability simulator"]
-    DV["Measured video pixels"] --> S
-    S --> PP["Paired probability panel"]
-    IA -. "Future: accepted history and measured movement features" .-> J["Trained joint predictor: P(I given H,V)"]
-    J -. "After independent evaluation and calibration" .-> A
-```
+![PitchGuard Agent system architecture](docs/images/agent-system.svg)
+
+[View full-size diagram](docs/images/agent-system.svg) · [Editable diagram source](docs/images/agent-system.dot)
+
+The diagram shows the implemented evidence workflow. The paired probability simulator remains separate; a trained joint predictor is a future extension.
 
 The specialists execute concurrently. The investigator checks evidence identity, timing, and uncertainty rather than voting on percentages. All four roles share one model deployment with distinct prompts and permissions. The analyst brief reuses accepted investigator rationale; fan narration receives only public visual facts.
 
 ## Historical Analyst Agent workflow
 
-```mermaid
-flowchart TD
-    D["Daily records and injury history"] --> ID["Select player and historical cutoff"]
-    ID --> C["Keep completed days and past events known at cutoff"]
-    C --> Q["Apply field whitelist and missing-data checks"]
-    Q --> F["Compute complete 7-day and 28-day windows"]
-    F --> M["Workload, exposure, recovery and prior-injury context"]
-    M --> H["Historical Analyst interprets computed features"]
-    H --> O["Cited observations and explicit limitations"]
-    O --> I["Evidence Investigator"]
-    O --> UI["History Analyst panel and dated source records"]
-    M -. "Planned model tool" .-> P["Historical predictor: P(I given H)"]
-    P -. "After training and independent calibration" .-> H
-```
+![Historical Analyst Agent workflow](docs/images/historical-agent.svg)
+
+[View full-size diagram](docs/images/historical-agent.svg) · [Editable diagram source](docs/images/historical-agent.dot)
 
 Future injury labels, generator formulas, and future rows never enter runtime prompts. Missing windows remain unavailable rather than zero. Unresolved distance, recovery-date, ACWR, and source rolling-feature definitions are excluded from current summaries. Source IDs and hashes support traceability. See the [runtime data dictionary](data/DATA_DICTIONARY.md) and [source provenance](data/source/README.md).
 
 ## Visual analysis Agent workflow
 
-```mermaid
-flowchart TD
-    V["Selected synthetic replay"] --> S["Sample 7 current frames"]
-    R["Independent same-player reference"] --> RF["Sample 3 reference frames"]
-    S --> M["Motion Analyst: GPT-4.1 mini"]
-    RF --> M
-    M --> O["Visible activity changes, frame citations and visibility limits"]
-    O --> I["Evidence Investigator checks claims"]
-    I --> Q{"Useful targeted recheck?"}
-    Q -->|"Yes, once"| W["Up to 3 seconds: 8 interval frames and 2 reference frames"]
-    W --> RE["Motion Analyst reassesses the interval"]
-    RE --> D["Final evidence decision"]
-    Q -->|"No"| D
-    D --> UI["Cited analyst brief and public fan explanation"]
-```
+![Visual analysis Agent workflow](docs/images/visual-agent.svg)
+
+[View full-size diagram](docs/images/visual-agent.svg) · [Editable diagram source](docs/images/visual-agent.dot)
 
 Recheck images replace the initial set rather than accumulating. Sparse frames can miss movement, and occlusion remains explicit uncertainty. The Agent does not infer pain, tissue damage, or a medical diagnosis. Quantitative gait measurement in the separate simulator uses a deterministic pixel extractor, not the Agent's natural-language observations.
 
